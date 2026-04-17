@@ -1,0 +1,387 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// USERS & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  avatar        String?
+  role          String   @default("user") // user | expert | admin
+  reputation    Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  consultations Consultation[]
+  rewards       Reward[]
+  reviews       Review[]
+  antifraudLogs AntiFraudLog[]
+}
+
+// ─────────────────────────────────────────────
+// DOMAIN HIERARCHY (200+ domains)
+// ─────────────────────────────────────────────
+
+model Domain {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  slug        String      @unique
+  description String
+  icon        String      @default("📚")
+  color       String      @default("#3b82f6")
+  expertCount Int         @default(0)
+  isActive    Boolean     @default(true)
+
+  subDomains  SubDomain[]
+  experts     Expert[]
+  consultations Consultation[]
+  aiAnalyses  AIAnalysis[]
+}
+
+model SubDomain {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String
+  description String
+  domainId    String
+
+  domain      Domain   @relation(fields: [domainId], references: [id])
+  topics      Topic[]
+  experts     Expert[]
+  consultations Consultation[]
+
+  @@unique([domainId, slug])
+}
+
+model Topic {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String
+  description String
+  subDomainId String
+  difficulty  String    @default("intermediate") // beginner | intermediate | advanced | expert
+
+  subDomain   SubDomain @relation(fields: [subDomainId], references: [id])
+  consultations Consultation[]
+
+  @@unique([subDomainId, slug])
+}
+
+// ─────────────────────────────────────────────
+// EXPERTS
+// ─────────────────────────────────────────────
+
+model Expert {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  avatar          String?
+  bio             String
+  yearsExperience Int      @default(0)
+  hourlyRate      Float    @default(0)
+  rating          Float    @default(0)
+  totalReviews    Int      @default(0)
+  totalWins       Int      @default(0)
+  winRate         Float    @default(0)
+  isAvailable     Boolean  @default(true)
+  isVerified      Boolean  @default(false)
+  responseTime    Int      @default(24) // hours
+  embeddingVector String?  // JSON array of floats (stored as text)
+  styleFingerprint String? // JSON - writing style metrics
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  domainId     String?
+  subDomainId  String?
+  domain       Domain?    @relation(fields: [domainId], references: [id])
+  subDomain    SubDomain? @relation(fields: [subDomainId], references: [id])
+
+  credentials  Credential[]
+  submissions  Submission[]
+  reviews      Review[]
+  rewards      Reward[]
+  routings     ExpertRouting[]
+  examResults  ExamResult[]
+}
+
+model Credential {
+  id         String   @id @default(uuid())
+  expertId   String
+  title      String
+  issuer     String
+  year       Int
+  verified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  expert     Expert   @relation(fields: [expertId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// CONSULTATIONS (Questions/Problems)
+// ─────────────────────────────────────────────
+
+model Consultation {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  imageUrl        String?
+  ocrText         String?  // extracted text from image
+  status          String   @default("pending")
+  // pending | analyzing | routing | active | examining | judging | completed | cancelled
+  questionType    String?  // explanation | problem_solving | advice | diagnosis | review
+  difficulty      String?  // beginner | intermediate | advanced | expert
+  urgency         String   @default("normal") // low | normal | high | critical
+  isPublic        Boolean  @default(true)
+  prizePoints     Int      @default(100)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  closedAt        DateTime?
+
+  userId       String
+  domainId     String?
+  subDomainId  String?
+  topicId      String?
+
+  user         User         @relation(fields: [userId], references: [id])
+  domain       Domain?      @relation(fields: [domainId], references: [id])
+  subDomain    SubDomain?   @relation(fields: [subDomainId], references: [id])
+  topic        Topic?       @relation(fields: [topicId], references: [id])
+
+  submissions  Submission[]
+  aiAnalysis   AIAnalysis?
+  exam         Exam?
+  routings     ExpertRouting[]
+  reviews      Review[]
+  escrow       Escrow?
+}
+
+// ─────────────────────────────────────────────
+// AI ANALYSIS (Classification + Embeddings)
+// ─────────────────────────────────────────────
+
+model AIAnalysis {
+  id                String   @id @default(uuid())
+  consultationId    String   @unique
+  detectedDomain    String
+  detectedSubDomain String
+  detectedTopic     String
+  questionType      String
+  difficulty        String
+  confidence        Float    @default(0)
+  reasoning         String
+  embeddingVector   String   // JSON float array
+  safetyFlags       String   @default("[]") // JSON array of flags
+  isSafe            Boolean  @default(true)
+  processingTimeMs  Int      @default(0)
+  modelUsed         String   @default("claude-sonnet-4-6")
+  createdAt         DateTime @default(now())
+
+  consultation      Consultation @relation(fields: [consultationId], references: [id])
+  domain            Domain       @relation(fields: [detectedDomain], references: [slug])
+}
+
+// ─────────────────────────────────────────────
+// EXPERT ROUTING
+// ─────────────────────────────────────────────
+
+model ExpertRouting {
+  id              String   @id @default(uuid())
+  consultationId  String
+  expertId        String
+  similarityScore Float    @default(0)
+  rankPosition    Int      @default(0)
+  notified        Boolean  @default(false)
+  accepted        Boolean?
+  createdAt       DateTime @default(now())
+
+  consultation    Consultation @relation(fields: [consultationId], references: [id])
+  expert          Expert       @relation(fields: [expertId], references: [id])
+
+  @@unique([consultationId, expertId])
+}
+
+// ─────────────────────────────────────────────
+// SUBMISSIONS (Expert Answers)
+// ─────────────────────────────────────────────
+
+model Submission {
+  id               String   @id @default(uuid())
+  consultationId   String
+  expertId         String
+  content          String
+  reasoning        String?
+  references       String   @default("[]") // JSON array
+  submittedAt      DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  timeSpentSeconds Int      @default(0)
+
+  // AI Evaluation scores (0-100)
+  accuracyScore    Float?
+  reasoningScore   Float?
+  completenessScore Float?
+  clarityScore     Float?
+  aiScore          Float?   // weighted avg of above (70% of final)
+
+  // Anti-cheat
+  aiGeneratedProb  Float    @default(0) // 0-1 probability
+  similarityFlag   Boolean  @default(false)
+  plagiarismScore  Float    @default(0) // 0-1
+  anomalyFlags     String   @default("[]") // JSON
+  isFlagged        Boolean  @default(false)
+  flagReason       String?
+
+  // Final scoring
+  examScore        Float?   // 20% of final
+  userRating       Float?   // 10% of final
+  finalScore       Float?   // composite
+  rank             Int?     // 1 = winner
+
+  status           String   @default("submitted")
+  // submitted | evaluating | evaluated | exam_sent | exam_completed | ranked | winner | disqualified
+
+  consultation     Consultation  @relation(fields: [consultationId], references: [id])
+  expert           Expert        @relation(fields: [expertId], references: [id])
+  validation       Validation?
+  antifraudLogs    AntiFraudLog[]
+  examResult       ExamResult?
+
+  @@unique([consultationId, expertId])
+}
+
+model Validation {
+  id           String    @id @default(uuid())
+  submissionId String    @unique
+  isValid      Boolean   @default(true)
+  feedback     String?
+  validatedAt  DateTime  @default(now())
+
+  submission   Submission @relation(fields: [submissionId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// ANTI-FRAUD
+// ─────────────────────────────────────────────
+
+model AntiFraudLog {
+  id             String   @id @default(uuid())
+  submissionId   String?
+  userId         String?
+  expertId       String?
+  eventType      String
+  // ai_generated | plagiarism | similarity | time_anomaly | style_change | velocity_abuse
+  severity       String   @default("low") // low | medium | high | critical
+  details        String   // JSON object
+  score          Float    @default(0) // risk score 0-1
+  action         String   @default("flag") // flag | warn | suspend | disqualify
+  resolved       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  submission     Submission? @relation(fields: [submissionId], references: [id])
+  user           User?       @relation(fields: [userId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// EXAMS (AI-Generated Mini-Exams)
+// ─────────────────────────────────────────────
+
+model Exam {
+  id              String   @id @default(uuid())
+  consultationId  String   @unique
+  topic           String
+  subTopic        String
+  difficulty      String
+  questions       String   // JSON array of ExamQuestion
+  totalPoints     Int      @default(100)
+  timeLimitSecs   Int      @default(600) // 10 min default
+  generatedBy     String   @default("claude-sonnet-4-6")
+  createdAt       DateTime @default(now())
+
+  consultation    Consultation @relation(fields: [consultationId], references: [id])
+  results         ExamResult[]
+}
+
+model ExamResult {
+  id           String   @id @default(uuid())
+  examId       String
+  expertId     String
+  submissionId String   @unique
+  answers      String   // JSON array of submitted answers
+  score        Float    @default(0) // 0-100
+  timeTakenSecs Int     @default(0)
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  feedback     String?  // AI feedback on exam answers
+
+  exam         Exam       @relation(fields: [examId], references: [id])
+  expert       Expert     @relation(fields: [expertId], references: [id])
+  submission   Submission @relation(fields: [submissionId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// REVIEWS & RATINGS
+// ─────────────────────────────────────────────
+
+model Review {
+  id             String   @id @default(uuid())
+  consultationId String
+  expertId       String
+  userId         String
+  rating         Int      // 1-5
+  comment        String?
+  isHelpful      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  expert         Expert       @relation(fields: [expertId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// REWARDS & POINTS
+// ─────────────────────────────────────────────
+
+model Reward {
+  id            String   @id @default(uuid())
+  userId        String?
+  expertId      String?
+  consultationId String?
+  type          String
+  // win_points | ad_reward | referral_bonus | daily_bonus | penalty
+  points        Int      @default(0)
+  moneyValue    Float    @default(0) // USD equivalent
+  status        String   @default("pending")
+  // pending | available | claimed | expired | forfeited
+  description   String
+  expiresAt     DateTime?
+  claimedAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  user          User?    @relation(fields: [userId], references: [id])
+  expert        Expert?  @relation(fields: [expertId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// ESCROW
+// ─────────────────────────────────────────────
+
+model Escrow {
+  id             String   @id @default(uuid())
+  consultationId String   @unique
+  amount         Float    @default(0)
+  currency       String   @default("USD")
+  status         String   @default("held")
+  // held | released | refunded | disputed
+  releasedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+}
