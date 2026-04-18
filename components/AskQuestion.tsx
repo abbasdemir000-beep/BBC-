@@ -40,8 +40,9 @@ export default function AskQuestion() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description, urgency }),
       });
-      if (!res.ok) throw new Error('Failed to create consultation');
-      const { id } = await res.json() as { id: string };
+      const resData = await res.json() as { id?: string; error?: string };
+      if (!res.ok) throw new Error(resData.error || 'Failed to create consultation');
+      const id = resData.id!;
       setConsultationId(id);
 
       // 2. AI analysis + routing
@@ -50,8 +51,8 @@ export default function AskQuestion() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ consultationId: id, text: `${title}\n\n${description}` }),
       });
-      if (!aRes.ok) throw new Error('Analysis failed');
-      const aData = await aRes.json() as Analysis;
+      const aData = await aRes.json() as Analysis & { error?: string };
+      if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
       setAnalysis(aData);
       setStep('result');
     } catch (err) {
@@ -79,7 +80,7 @@ export default function AskQuestion() {
             value={title}
             onChange={e => setTitle(e.target.value)}
             required
-            minLength={10}
+            minLength={3}
             maxLength={200}
           />
         </div>
@@ -93,7 +94,7 @@ export default function AskQuestion() {
             value={description}
             onChange={e => setDescription(e.target.value)}
             required
-            minLength={20}
+            minLength={5}
           />
           <div className="text-xs text-slate-400 mt-1 text-right">{description.length} chars</div>
         </div>

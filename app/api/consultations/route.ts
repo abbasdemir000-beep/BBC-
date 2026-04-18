@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const CreateSchema = z.object({
-  title: z.string().min(10).max(200),
-  description: z.string().min(20),
+  title: z.string().min(3).max(200),
+  description: z.string().min(5),
   imageUrl: z.string().url().optional(),
   urgency: z.enum(['low', 'normal', 'high', 'critical']).default('normal'),
   isPublic: z.boolean().default(true),
@@ -46,7 +46,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const data = CreateSchema.parse(body);
+  let data;
+  try {
+    data = CreateSchema.parse(body);
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 422 });
+  }
 
   // Use demo user if userId not provided
   let userId = data.userId;

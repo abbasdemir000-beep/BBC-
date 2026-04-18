@@ -12,14 +12,26 @@ const AnalyzeSchema = z.object({
 export async function POST(req: NextRequest) {
   const start = Date.now();
   const body = await req.json();
-  const { consultationId, text } = AnalyzeSchema.parse(body);
+
+  let consultationId: string, text: string;
+  try {
+    ({ consultationId, text } = AnalyzeSchema.parse(body));
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 422 });
+  }
 
   // Get available domain slugs
   const domains = await prisma.domain.findMany({ select: { slug: true }, where: { isActive: true } });
   const domainSlugs = domains.map(d => d.slug);
 
   // Classify
-  const classification = await classifyQuestion(text, domainSlugs);
+  let classification;
+  try {
+    classification = await classifyQuestion(text, domainSlugs);
+  } catch (err) {
+    console.error('Classification error:', err);
+    return NextResponse.json({ error: `AI classification failed: ${String(err)}` }, { status: 502 });
+  }
 
   // Generate embedding
   const embedding = await generateEmbedding(text);
