@@ -6,12 +6,14 @@ import ConsultationsBoard from '@/components/ConsultationsBoard';
 import AskQuestion from '@/components/AskQuestion';
 import RewardPanel from '@/components/RewardPanel';
 import ExpertDashboard from '@/components/ExpertDashboard';
+import NotificationsPanel from '@/components/NotificationsPanel';
+import MyQuestions from '@/components/MyQuestions';
 import AuthModal from '@/components/AuthModal';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { useLang } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 
-type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard';
+type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard' | 'notifications' | 'my-questions';
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>('dashboard');
@@ -21,16 +23,20 @@ export default function Home() {
 
   const isExpert = user?.role === 'expert';
 
-  const NAV: { id: Tab; label: string; icon: string; expertOnly?: boolean }[] = [
+  const NAV: { id: Tab; label: string; icon: string; expertOnly?: boolean; authOnly?: boolean }[] = [
     { id: 'dashboard',        label: t('nav_dashboard'),   icon: '📊' },
     { id: 'ask',              label: t('nav_ask'),          icon: '❓' },
     { id: 'consultations',   label: t('nav_competitions'), icon: '⚡' },
     { id: 'experts',         label: t('nav_experts'),      icon: '🧠' },
     { id: 'rewards',         label: t('nav_rewards'),      icon: '🏆' },
     { id: 'expert-dashboard', label: 'My Targeted',        icon: '🎯', expertOnly: true },
+    { id: 'my-questions',     label: 'My Questions',       icon: '📋', authOnly: true },
+    { id: 'notifications',    label: 'Notifications',      icon: '🔔', authOnly: true },
   ];
 
-  const visibleNav = NAV.filter(n => !n.expertOnly || isExpert);
+  const visibleNav = NAV.filter(n =>
+    (!n.expertOnly || isExpert) && (!n.authOnly || !!user)
+  );
 
   return (
     <div className="flex min-h-screen" dir={dir}>
@@ -81,9 +87,12 @@ export default function Home() {
                     <div className="text-xs text-slate-400 capitalize">{user.role}</div>
                   </div>
                   {unreadNotifications > 0 && (
-                    <div className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                    <button
+                      onClick={() => setTab('notifications')}
+                      className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold flex-shrink-0 hover:bg-red-600 transition-colors"
+                    >
                       {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                    </div>
+                    </button>
                   )}
                 </div>
                 <button
@@ -113,6 +122,8 @@ export default function Home() {
         {tab === 'ask'              && <AskQuestion />}
         {tab === 'rewards'          && <RewardPanel />}
         {tab === 'expert-dashboard' && <ExpertDashboard />}
+        {tab === 'my-questions'     && <MyQuestions />}
+        {tab === 'notifications'    && <NotificationsPanel />}
       </main>
     </div>
   );
