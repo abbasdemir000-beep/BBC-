@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
             body: `"${consultation.title}" — domain: ${classification.domain}`,
             consultationId,
           })),
+          skipDuplicates: true,
         });
       }
     } catch {
