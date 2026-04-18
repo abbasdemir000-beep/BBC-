@@ -18,6 +18,10 @@ model User {
   avatar        String?
   role          String   @default("user") // user | expert | admin
   reputation    Int      @default(0)
+  passwordHash  String?
+  bio           String?
+  isActive      Boolean  @default(true)
+  lastSeenAt    DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -25,6 +29,9 @@ model User {
   rewards       Reward[]
   reviews       Review[]
   antifraudLogs AntiFraudLog[]
+  notifications Notification[]
+  chatRooms     ChatRoom[]
+  messages      Message[]
 }
 
 // ─────────────────────────────────────────────
@@ -86,6 +93,7 @@ model Expert {
   email           String   @unique
   avatar          String?
   bio             String
+  passwordHash    String?
   yearsExperience Int      @default(0)
   hourlyRate      Float    @default(0)
   rating          Float    @default(0)
@@ -94,9 +102,10 @@ model Expert {
   winRate         Float    @default(0)
   isAvailable     Boolean  @default(true)
   isVerified      Boolean  @default(false)
-  responseTime    Int      @default(24) // hours
-  embeddingVector String?  // JSON array of floats (stored as text)
-  styleFingerprint String? // JSON - writing style metrics
+  responseTime    Int      @default(24)
+  embeddingVector String?
+  styleFingerprint String?
+  lastSeenAt      DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -108,9 +117,11 @@ model Expert {
   credentials  Credential[]
   submissions  Submission[]
   reviews      Review[]
-  rewards      Reward[]
-  routings     ExpertRouting[]
-  examResults  ExamResult[]
+  rewards       Reward[]
+  routings      ExpertRouting[]
+  examResults   ExamResult[]
+  notifications Notification[]
+  chatRooms     ChatRoom[]
 }
 
 model Credential {
@@ -162,6 +173,7 @@ model Consultation {
   routings     ExpertRouting[]
   reviews      Review[]
   escrow       Escrow?
+  chatRooms    ChatRoom[]
 }
 
 // ─────────────────────────────────────────────
@@ -384,4 +396,58 @@ model Escrow {
   createdAt      DateTime @default(now())
 
   consultation   Consultation @relation(fields: [consultationId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id             String   @id @default(uuid())
+  userId         String?
+  expertId       String?
+  type           String
+  // targeted | exam_unlocked | chat_unlocked | answer_evaluated | competition_won
+  title          String
+  body           String
+  isRead         Boolean  @default(false)
+  consultationId String?
+  createdAt      DateTime @default(now())
+
+  user           User?    @relation(fields: [userId], references: [id])
+  expert         Expert?  @relation(fields: [expertId], references: [id])
+}
+
+// ─────────────────────────────────────────────
+// CHAT ROOMS (unlocked after exam pass)
+// ─────────────────────────────────────────────
+
+model ChatRoom {
+  id             String   @id @default(uuid())
+  consultationId String
+  expertId       String
+  userId         String
+  isActive       Boolean  @default(true)
+  unlockedAt     DateTime @default(now())
+
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  expert         Expert       @relation(fields: [expertId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+  messages       Message[]
+
+  @@unique([consultationId, expertId])
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  chatRoomId String
+  senderId   String
+  senderRole String   // user | expert
+  senderName String
+  content    String
+  createdAt  DateTime @default(now())
+  isRead     Boolean  @default(false)
+
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+  sender     User?    @relation(fields: [senderId], references: [id])
 }

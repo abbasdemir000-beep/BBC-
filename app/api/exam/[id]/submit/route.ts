@@ -49,5 +49,35 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     data: { examScore: score, finalScore, status: 'exam_completed' },
   });
 
+  // Unlock chat room if exam score ≥ 60
+  if (score >= 60) {
+    const consultation = await prisma.consultation.findUnique({ where: { id: exam.consultationId } });
+    if (consultation) {
+      try {
+        const room = await prisma.chatRoom.upsert({
+          where: { consultationId_expertId: { consultationId: exam.consultationId, expertId: data.expertId } },
+          update: { isActive: true },
+          create: { consultationId: exam.consultationId, expertId: data.expertId, userId: consultation.userId },
+        });
+
+        // Notify user that expert passed exam and chat is open
+        const expert = await prisma.expert.findUnique({ where: { id: data.expertId } });
+        await prisma.notification.create({
+          data: {
+            userId: consultation.userId,
+            type: 'chat_unlocked',
+            title: 'Expert wants to chat!',
+            body: `${expert?.name ?? 'An expert'} passed the exam for your question "${consultation.title}" and is ready to discuss.`,
+            consultationId: exam.consultationId,
+          },
+        });
+
+        return NextResponse.json({ examResult, score, feedback, breakdown, finalScore, chatRoomId: room.id });
+      } catch {
+        // non-fatal — chat creation failure doesn't block exam completion
+      }
+    }
+  }
+
   return NextResponse.json({ examResult, score, feedback, breakdown, finalScore });
 }

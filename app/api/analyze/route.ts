@@ -81,6 +81,21 @@ export async function POST(req: NextRequest) {
   if (classification.isSafe && domain) {
     try {
       routings = await routeToExperts(consultationId, domain.slug, embedding, 5);
+
+      // Notify each routed expert
+      const consultation = await prisma.consultation.findUnique({ where: { id: consultationId } });
+      if (consultation) {
+        const routingRecords = routings as Array<{ expertId: string }>;
+        await prisma.notification.createMany({
+          data: routingRecords.map(r => ({
+            expertId: r.expertId,
+            type: 'targeted',
+            title: 'New question matches your expertise',
+            body: `"${consultation.title}" — domain: ${classification.domain}`,
+            consultationId,
+          })),
+        });
+      }
     } catch {
       // non-fatal — routing failure doesn't block analysis
     }
