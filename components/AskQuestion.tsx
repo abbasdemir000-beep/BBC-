@@ -50,8 +50,9 @@ function AdOverlay({ onSkip, onDone, apiPromise }: {
     const interval = setInterval(() => {
       setElapsed(prev => {
         const next = prev + 1;
-        const nextStep = PIPELINE_STEPS.findLastIndex(s => s.delay <= next);
-        if (nextStep >= 0) setCurrentStep(nextStep);
+        const nextStep = [...PIPELINE_STEPS].reverse().findIndex(s => s.delay <= next);
+        const resolvedStep = nextStep >= 0 ? PIPELINE_STEPS.length - 1 - nextStep : -1;
+        if (resolvedStep >= 0) setCurrentStep(resolvedStep);
         return next;
       });
       setTimeLeft(prev => {
