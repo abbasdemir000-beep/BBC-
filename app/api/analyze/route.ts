@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { classifyQuestion, generateEmbedding } from '@/lib/ai/classifier';
+import { smartClassify, smartEmbedding } from '@/lib/ai/smartEngine';
 import { routeToExperts } from '@/lib/ai/router';
 import { z } from 'zod';
 
 const AnalyzeSchema = z.object({
   consultationId: z.string(),
-  text: z.string().min(10),
+  text: z.string().min(3),
 });
 
 export async function POST(req: NextRequest) {
@@ -20,21 +20,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(err) }, { status: 422 });
   }
 
-  // Get available domain slugs
-  const domains = await prisma.domain.findMany({ select: { slug: true }, where: { isActive: true } });
-  const domainSlugs = domains.map(d => d.slug);
+  // Classify with smart rule-based engine (zero API calls)
+  const classification = smartClassify(text);
 
-  // Classify
-  let classification;
-  try {
-    classification = await classifyQuestion(text, domainSlugs);
-  } catch (err) {
-    console.error('Classification error:', err);
-    return NextResponse.json({ error: `AI classification failed: ${String(err)}` }, { status: 502 });
-  }
-
-  // Generate embedding
-  const embedding = await generateEmbedding(text);
+  // Generate deterministic embedding
+  const embedding = smartEmbedding(text);
 
   // Find domain by slug
   const domain = await prisma.domain.findUnique({ where: { slug: classification.domain } });
@@ -54,6 +44,7 @@ export async function POST(req: NextRequest) {
       safetyFlags: JSON.stringify(classification.safetyFlags),
       isSafe: classification.isSafe,
       processingTimeMs: Date.now() - start,
+      modelUsed: 'smart-engine-v1',
     },
     create: {
       consultationId,
@@ -68,6 +59,7 @@ export async function POST(req: NextRequest) {
       safetyFlags: JSON.stringify(classification.safetyFlags),
       isSafe: classification.isSafe,
       processingTimeMs: Date.now() - start,
+      modelUsed: 'smart-engine-v1',
     },
   });
 
@@ -84,10 +76,14 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Route to top experts if safe
+  // Route to top matching experts via embedding similarity
   let routings: unknown[] = [];
   if (classification.isSafe && domain) {
-    routings = await routeToExperts(consultationId, domain.slug, embedding, 5);
+    try {
+      routings = await routeToExperts(consultationId, domain.slug, embedding, 5);
+    } catch {
+      // non-fatal — routing failure doesn't block analysis
+    }
     await prisma.consultation.update({
       where: { id: consultationId },
       data: { status: 'active' },

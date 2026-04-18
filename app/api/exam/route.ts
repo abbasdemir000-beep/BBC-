@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { generateExam } from '@/lib/ai/examGenerator';
+import { smartGenerateExam } from '@/lib/ai/smartEngine';
 import { z } from 'zod';
 
 const GenerateSchema = z.object({
@@ -9,25 +9,30 @@ const GenerateSchema = z.object({
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { consultationId } = GenerateSchema.parse(body);
+  let consultationId: string;
+  try {
+    ({ consultationId } = GenerateSchema.parse(body));
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 422 });
+  }
 
   const consultation = await prisma.consultation.findUnique({
     where: { id: consultationId },
-    include: { aiAnalysis: true, topic: true },
+    include: { aiAnalysis: true, topic: true, domain: true },
   });
   if (!consultation) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const topic = consultation.aiAnalysis?.detectedTopic ?? consultation.topic?.name ?? 'General';
-  const subTopic = consultation.aiAnalysis?.detectedSubDomain ?? 'General';
+  const domain = consultation.aiAnalysis?.detectedDomain ?? consultation.domain?.slug ?? 'general';
   const difficulty = consultation.difficulty ?? 'intermediate';
 
-  const generated = await generateExam(topic, subTopic, difficulty, 10);
+  const generated = smartGenerateExam(topic, domain, difficulty);
 
   const exam = await prisma.exam.upsert({
     where: { consultationId },
     update: {
       topic,
-      subTopic,
+      subTopic: consultation.aiAnalysis?.detectedSubDomain ?? 'General',
       difficulty,
       questions: JSON.stringify(generated.questions),
       totalPoints: generated.totalPoints,
@@ -36,7 +41,7 @@ export async function POST(req: NextRequest) {
     create: {
       consultationId,
       topic,
-      subTopic,
+      subTopic: consultation.aiAnalysis?.detectedSubDomain ?? 'General',
       difficulty,
       questions: JSON.stringify(generated.questions),
       totalPoints: generated.totalPoints,
@@ -44,7 +49,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Update consultation status
   await prisma.consultation.update({
     where: { id: consultationId },
     data: { status: 'examining' },
