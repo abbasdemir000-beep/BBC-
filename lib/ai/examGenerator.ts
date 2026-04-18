@@ -1,23 +1,33 @@
-// All AI logic moved to smartEngine.ts — no external API calls
-export type { SmartExamQuestion as ExamQuestion, SmartExam as GeneratedExam } from './smartEngine';
-export { smartGenerateExam as generateExam } from './smartEngine';
+export type { OpenExamQuestion as ExamQuestion, OpenExam as GeneratedExam } from './smartEngine';
+export { smartGenerateOpenExam as generateExam } from './smartEngine';
 
-export async function gradeExam(
-  questions: Array<{ id: string; type: string; correctAnswer: string; points: number; explanation: string }>,
+export async function gradeOpenExam(
+  questions: Array<{ id: string; keywords: string[]; points: number }>,
   answers: Record<string, string>
-): Promise<{ score: number; feedback: string; breakdown: Record<string, { correct: boolean; points: number; explanation: string }> }> {
-  const breakdown: Record<string, { correct: boolean; points: number; explanation: string }> = {};
-  let earned = 0, total = 0;
+): Promise<{ score: number; feedback: string; breakdown: Record<string, { score: number; points: number; feedback: string }> }> {
+  const { scoreOpenAnswer } = await import('./smartEngine');
+  const breakdown: Record<string, { score: number; points: number; feedback: string }> = {};
+  let totalWeighted = 0;
+  let totalPoints = 0;
 
   for (const q of questions) {
-    total += q.points;
-    const submitted = (answers[q.id] ?? '').trim().toUpperCase().charAt(0);
-    const correct   = q.correctAnswer.trim().toUpperCase().charAt(0);
-    const isCorrect = submitted === correct;
-    breakdown[q.id] = { correct: isCorrect, points: isCorrect ? q.points : 0, explanation: q.explanation };
-    if (isCorrect) earned += q.points;
+    const answer = answers[q.id] ?? '';
+    const pct = scoreOpenAnswer(answer, q.keywords);
+    const earned = Math.round((pct / 100) * q.points);
+    totalWeighted += earned;
+    totalPoints += q.points;
+    const fb = pct >= 80 ? 'Excellent answer — strong use of key concepts.'
+      : pct >= 60 ? 'Good answer — covers most key concepts.'
+      : pct >= 40 ? 'Partial answer — missing some important concepts.'
+      : 'Insufficient — answer lacks key domain concepts.';
+    breakdown[q.id] = { score: pct, points: earned, feedback: fb };
   }
 
-  const score = total > 0 ? Math.round((earned / total) * 100) : 0;
-  return { score, feedback: `Scored ${earned}/${total} points (${score}%)`, breakdown };
+  const score = totalPoints > 0 ? Math.round((totalWeighted / totalPoints) * 100) : 0;
+  const overallFb = score >= 80 ? 'Outstanding performance — deep domain knowledge demonstrated.'
+    : score >= 60 ? 'Competent — you demonstrated solid understanding.'
+    : score >= 40 ? 'Partial knowledge — more depth needed.'
+    : 'Insufficient knowledge for this domain.';
+
+  return { score, feedback: overallFb, breakdown };
 }

@@ -348,3 +348,110 @@ export function smartGenerateExam(topic: string, domain: string, difficulty: str
     coverageAreas: ['Definitions & Concepts', 'Mechanisms & Processes', 'Clinical/Practical Application', 'Analysis & Reasoning', 'Synthesis'],
   };
 }
+
+// ── Open-ended exam (replaces MCQ) ──────────────────────────────────────────
+
+export interface OpenExamQuestion {
+  id: string;
+  question: string;
+  hint: string;
+  keywords: string[];
+  points: number;
+  category: string;
+}
+
+export interface OpenExam {
+  questions: OpenExamQuestion[];
+  totalPoints: number;
+  timeLimitSecs: number;
+  topic: string;
+  domain: string;
+}
+
+const OPEN_EXAM_TEMPLATES: Record<string, Array<{ q: string; hint: string; keywords: string[]; cat: string }>> = {
+  medicine: [
+    { q: 'Briefly explain the mechanism by which NSAIDs reduce inflammation.', hint: 'Think COX enzymes, prostaglandins…', keywords: ['cox','prostaglandin','inflammation','cyclooxygenase','arachidonic','enzyme','inhibit','pain'], cat: 'mechanism' },
+    { q: 'What are the key clinical features that distinguish Type 1 from Type 2 diabetes?', hint: 'Age of onset, insulin dependency, autoimmunity…', keywords: ['insulin','autoimmune','ketoacidosis','obesity','beta cell','resistance','juvenile','adult','pancreas'], cat: 'diagnosis' },
+    { q: 'Name the immediate steps in managing a patient presenting with anaphylaxis.', hint: 'ABC, epinephrine, monitoring…', keywords: ['epinephrine','adrenaline','airway','oxygen','antihistamine','corticosteroid','iv','fluid','monitor','anaphylaxis'], cat: 'management' },
+  ],
+  law: [
+    { q: 'Explain the key elements required to form a valid contract.', hint: 'Offer, acceptance, consideration…', keywords: ['offer','acceptance','consideration','capacity','intention','mutual assent','legal','binding','agreement'], cat: 'contract' },
+    { q: 'What is the doctrine of precedent (stare decisis) and why is it important?', hint: 'Consistency, case law, court hierarchy…', keywords: ['precedent','binding','court','consistent','certainty','hierarchy','overrule','distinguish','stare decisis'], cat: 'principle' },
+    { q: 'Describe the key differences between civil and criminal liability.', hint: 'Standard of proof, parties, remedies…', keywords: ['beyond reasonable doubt','balance of probabilities','plaintiff','damages','imprisonment','prosecution','state','civil','criminal'], cat: 'comparison' },
+  ],
+  'computer-science': [
+    { q: 'Explain how a hash table handles collisions.', hint: 'Chaining, open addressing, load factor…', keywords: ['collision','chaining','open addressing','hash function','bucket','linear probing','load factor','rehash'], cat: 'data-structures' },
+    { q: 'What is the difference between TCP and UDP? When would you use each?', hint: 'Reliability, speed, use cases…', keywords: ['reliable','connection','handshake','streaming','real-time','acknowledgment','packet loss','latency','udp','tcp'], cat: 'networking' },
+    { q: 'Explain the SOLID principles in object-oriented design.', hint: 'Five principles of good software design…', keywords: ['single responsibility','open closed','liskov','interface segregation','dependency inversion','solid','design','principle'], cat: 'design' },
+  ],
+  mathematics: [
+    { q: 'Explain the concept of a derivative and its geometric interpretation.', hint: 'Instantaneous rate of change, tangent line…', keywords: ['slope','tangent','instantaneous','rate of change','limit','differentiation','function','curve','derivative'], cat: 'calculus' },
+    { q: 'What is the Central Limit Theorem and why is it important?', hint: 'Sample means, normal distribution…', keywords: ['normal distribution','sample mean','large sample','population','bell curve','convergence','probability','variance','statistics'], cat: 'statistics' },
+    { q: 'Describe how matrix multiplication works and give a real-world application.', hint: 'Rows, columns, dot product…', keywords: ['row','column','dot product','transformation','linear','dimensions','compatible','matrix','application'], cat: 'linear-algebra' },
+  ],
+  engineering: [
+    { q: "Explain Ohm's law and how it applies to circuit design.", hint: 'Voltage, current, resistance, power…', keywords: ['voltage','current','resistance','ohm','power','circuit','series','parallel','V=IR'], cat: 'electrical' },
+    { q: 'What key factors guide material selection for a structural application?', hint: 'Strength, weight, cost, durability…', keywords: ['strength','yield','fatigue','corrosion','weight','cost','ductility','stiffness','thermal','material'], cat: 'materials' },
+    { q: 'Describe the basic steps of the engineering design process.', hint: 'Define, research, prototype, test…', keywords: ['define','requirements','brainstorm','prototype','test','iterate','constraints','evaluate','design'], cat: 'process' },
+  ],
+  business: [
+    { q: 'Explain SWOT analysis and its business application.', hint: 'Strengths, Weaknesses, Opportunities, Threats…', keywords: ['strengths','weaknesses','opportunities','threats','internal','external','strategy','competitive','swot'], cat: 'strategy' },
+    { q: 'What is the difference between gross profit and net profit?', hint: 'Revenue, COGS, operating expenses…', keywords: ['revenue','cost of goods sold','operating expenses','gross margin','net income','overhead','profit','financial'], cat: 'finance' },
+    { q: 'Describe key strategies a startup can use to achieve product-market fit.', hint: 'Customer discovery, iteration, metrics…', keywords: ['customer','feedback','iteration','pivot','retention','growth','value proposition','market','product'], cat: 'startup' },
+  ],
+  chemistry: [
+    { q: 'Explain the difference between ionic and covalent bonding.', hint: 'Electronegativity, electron transfer vs sharing…', keywords: ['electronegativity','electron transfer','sharing','ionic','covalent','polar','lattice','molecule','bond'], cat: 'bonding' },
+    { q: "What is Le Chatelier's principle? How does it apply to equilibrium?", hint: 'Stress, response, concentration changes…', keywords: ['equilibrium','stress','concentration','temperature','pressure','shift','le chatelier','reversible'], cat: 'equilibrium' },
+    { q: 'Describe the mechanism of an SN2 reaction.', hint: 'Backside attack, leaving group, stereochemistry…', keywords: ['nucleophile','backside attack','leaving group','inversion','bimolecular','transition state','sn2','walden'], cat: 'organic' },
+  ],
+  biology: [
+    { q: 'Explain the process of DNA replication and the key enzymes involved.', hint: 'Helicase, polymerase, primer…', keywords: ['helicase','dna polymerase','primer','primase','ligase','replication fork','leading strand','lagging strand','okazaki'], cat: 'molecular' },
+    { q: 'What is natural selection and how does it drive evolution?', hint: 'Variation, fitness, adaptation…', keywords: ['variation','fitness','adaptation','survival','reproduction','selection pressure','allele','gene frequency','evolution'], cat: 'evolution' },
+    { q: 'Describe the role of mitochondria in cellular respiration.', hint: 'ATP, electron transport chain, Krebs cycle…', keywords: ['atp','electron transport chain','krebs cycle','oxidative phosphorylation','nadh','mitochondria','glucose','oxygen'], cat: 'cell-biology' },
+  ],
+  psychology: [
+    { q: 'Explain cognitive behavioral therapy (CBT) and its core principles.', hint: 'Thoughts, behaviors, emotions, distortions…', keywords: ['cognitive','behavioral','thoughts','distortions','behavior','emotion','restructuring','automatic thoughts','schema','cbt'], cat: 'therapy' },
+    { q: "Describe Maslow's hierarchy of needs and its main criticisms.", hint: 'Five levels; cultural critiques…', keywords: ['physiological','safety','belonging','esteem','self-actualization','hierarchy','motivation','criticism','culture','maslow'], cat: 'motivation' },
+    { q: 'What are the key differences between classical and operant conditioning?', hint: 'Pavlov vs Skinner, stimuli, reinforcement…', keywords: ['pavlov','skinner','reinforcement','punishment','stimulus','response','conditioned','unconditioned','operant'], cat: 'learning' },
+  ],
+  economics: [
+    { q: 'Explain price elasticity of demand and give an example.', hint: 'Responsiveness, price changes, necessities vs luxuries…', keywords: ['elasticity','demand','price','percentage change','inelastic','elastic','substitute','necessity','luxury'], cat: 'microeconomics' },
+    { q: 'What is monetary policy and how do central banks control inflation?', hint: 'Interest rates, money supply, open market…', keywords: ['interest rate','inflation','central bank','money supply','quantitative easing','open market','reserve','credit'], cat: 'macro' },
+    { q: 'Describe key differences between perfect competition and monopoly.', hint: 'Price setting, barriers to entry, efficiency…', keywords: ['price taker','price maker','barriers to entry','efficiency','profit','market power','competition','consumer surplus'], cat: 'market-structures' },
+  ],
+  physics: [
+    { q: "Explain Newton's three laws of motion with a real example for each.", hint: 'Inertia, F=ma, action-reaction…', keywords: ['inertia','force','mass','acceleration','reaction','momentum','velocity','F=ma','newton'], cat: 'mechanics' },
+    { q: 'What is wave-particle duality in quantum mechanics?', hint: 'Double-slit, de Broglie, photons…', keywords: ['wave','particle','double slit','de broglie','photon','electron','quantum','interference','diffraction'], cat: 'quantum' },
+    { q: 'Explain entropy and the second law of thermodynamics.', hint: 'Disorder, irreversibility, heat flow…', keywords: ['entropy','disorder','thermodynamics','irreversible','heat','energy','spontaneous','closed system'], cat: 'thermodynamics' },
+  ],
+};
+
+const DEFAULT_OPEN_QUESTIONS = [
+  { q: 'Explain the fundamental principles that govern this field and why they matter.', hint: 'Theory, practice, real-world applications…', keywords: ['principle','fundamental','practice','theory','application','method','approach','evidence','knowledge'], cat: 'foundation' },
+  { q: 'Describe a common problem in this domain and the best approach to solve it.', hint: 'Diagnosis, analysis, solution methodology…', keywords: ['problem','solution','analyze','approach','method','identify','evaluate','improve','result','process'], cat: 'problem-solving' },
+  { q: 'What are the most critical skills an expert in this field must master?', hint: 'Technical skills, analytical ability, domain knowledge…', keywords: ['skill','knowledge','expertise','experience','critical','analysis','domain','professional','master','competency'], cat: 'expertise' },
+];
+
+export function smartGenerateOpenExam(topic: string, domain: string, _difficulty: string): OpenExam {
+  const templates = OPEN_EXAM_TEMPLATES[domain] ?? DEFAULT_OPEN_QUESTIONS;
+  const questions: OpenExamQuestion[] = templates.slice(0, 3).map((t, i) => ({
+    id: `q${i + 1}`,
+    question: t.q,
+    hint: t.hint,
+    keywords: t.keywords,
+    points: i < 2 ? 33 : 34,
+    category: t.cat,
+  }));
+
+  return { questions, totalPoints: 100, timeLimitSecs: 25, topic, domain };
+}
+
+export function scoreOpenAnswer(answer: string, keywords: string[]): number {
+  if (!answer || answer.trim().split(/\s+/).length < 4) return 0;
+  const lower = answer.toLowerCase();
+  const hits = keywords.filter(k => lower.includes(k.toLowerCase())).length;
+  const words = answer.trim().split(/\s+/).length;
+  const keywordScore = Math.min(60, Math.round((hits / Math.max(1, keywords.length)) * 60) + (hits >= 2 ? 10 : 0));
+  const lengthScore = words < 5 ? 5 : words < 20 ? 15 : words < 50 ? 30 : words < 200 ? 40 : 35;
+  return Math.min(100, keywordScore + lengthScore);
+}

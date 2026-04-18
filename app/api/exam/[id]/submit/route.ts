@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { gradeExam } from '@/lib/ai/examGenerator';
+import { gradeOpenExam } from '@/lib/ai/examGenerator';
 import { calcFinalScore } from '@/lib/utils';
 import { z } from 'zod';
 
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!submission) return NextResponse.json({ error: 'Submission not found' }, { status: 404 });
 
   const questions = JSON.parse(exam.questions);
-  const { score, feedback, breakdown } = await gradeExam(questions, data.answers);
+  const { score, feedback, breakdown } = await gradeOpenExam(questions, data.answers);
 
   const examResult = await prisma.examResult.upsert({
     where: { submissionId: data.submissionId },

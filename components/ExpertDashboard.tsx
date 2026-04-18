@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import ChatInterface from './ChatInterface';
+import ExamModal from './ExamModal';
 
 interface Submission { id: string; status: string; aiScore: number | null; examScore: number | null; finalScore: number | null; }
 interface Consultation {
@@ -21,12 +22,14 @@ interface Targeted {
 }
 
 interface ChatRoomInfo { id: string; consultationId: string; userId: string; }
+interface ExamInfo { consultationId: string; expertId: string; submissionId: string; }
 
 export default function ExpertDashboard() {
   const { expert } = useAuth();
   const [items, setItems] = useState<Targeted[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeChat, setActiveChat] = useState<ChatRoomInfo | null>(null);
+  const [activeExam, setActiveExam] = useState<ExamInfo | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -68,10 +71,18 @@ export default function ExpertDashboard() {
 
   return (
     <div className="p-8 space-y-6">
-      {activeChat && (
-        <ChatInterface
-          roomId={activeChat.id}
-          onClose={() => setActiveChat(null)}
+      {activeChat && <ChatInterface roomId={activeChat.id} onClose={() => setActiveChat(null)} />}
+      {activeExam && expert && (
+        <ExamModal
+          consultationId={activeExam.consultationId}
+          expertId={activeExam.expertId}
+          submissionId={activeExam.submissionId}
+          onClose={() => { setActiveExam(null); load(); }}
+          onDone={({ chatRoomId }) => {
+            setActiveExam(null);
+            if (chatRoomId) setActiveChat({ id: chatRoomId, consultationId: activeExam.consultationId, userId: '' });
+            load();
+          }}
         />
       )}
 
@@ -97,6 +108,11 @@ export default function ExpertDashboard() {
               processing={processingId === item.routingId}
               onAccept={accepted => handleAccept(item.routingId, accepted)}
               onOpenChat={() => openChat(item.consultation.id, item.consultation.user.id)}
+              onTakeExam={() => {
+                if (item.mySubmission && expert) {
+                  setActiveExam({ consultationId: item.consultation.id, expertId: expert.id, submissionId: item.mySubmission.id });
+                }
+              }}
             />
           ))}
         </div>
@@ -105,14 +121,16 @@ export default function ExpertDashboard() {
   );
 }
 
-function TargetedCard({ item, processing, onAccept, onOpenChat }: {
+function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam }: {
   item: Targeted;
   processing: boolean;
   onAccept: (accepted: boolean) => void;
   onOpenChat: () => void;
+  onTakeExam: () => void;
 }) {
   const { consultation, mySubmission, similarityScore, rank, accepted } = item;
   const hasChatAccess = mySubmission && (mySubmission.examScore ?? 0) >= 60;
+  const canTakeExam = accepted && mySubmission && !mySubmission.examScore;
 
   return (
     <div className="card border border-slate-100 hover:border-brand-200 transition-all">
@@ -139,7 +157,7 @@ function TargetedCard({ item, processing, onAccept, onOpenChat }: {
               </span>
             )}
             <span className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-lg">{consultation.difficulty}</span>
-            <span className="text-xs text-slate-400">by {consultation.user.name}</span>
+            <span className="text-xs text-slate-400">by Anonymous</span>
           </div>
 
           {mySubmission && (
@@ -176,6 +194,14 @@ function TargetedCard({ item, processing, onAccept, onOpenChat }: {
               <span className="text-xs bg-slate-100 text-slate-500 px-3 py-1.5 rounded-xl font-medium">Declined</span>
             )}
 
+            {canTakeExam && (
+              <button
+                onClick={onTakeExam}
+                className="ms-auto px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
+              >
+                🧪 Take Exam
+              </button>
+            )}
             {hasChatAccess && (
               <button
                 onClick={onOpenChat}

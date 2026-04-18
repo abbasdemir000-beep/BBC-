@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
 
-type Step = 'input' | 'analyzing' | 'result';
+type Step = 'input' | 'ad' | 'result';
 
 interface Analysis {
   analysis: {
@@ -14,6 +14,108 @@ interface Analysis {
   processingTimeMs: number;
 }
 
+const ADS = [
+  { title: 'Grow your business with AI', body: 'Join 50,000+ companies using our platform to automate knowledge workflows.', cta: 'Learn More', color: 'from-blue-600 to-indigo-700', icon: '🚀' },
+  { title: 'Expert Network — Now Open', body: 'Connect with verified professionals in 20+ domains. Get answers fast.', cta: 'Explore', color: 'from-purple-600 to-pink-600', icon: '🧠' },
+  { title: 'KnowledgeMarket Pro', body: 'Unlimited questions, priority routing, and advanced analytics for teams.', cta: 'Try Free', color: 'from-green-600 to-teal-600', icon: '⭐' },
+];
+
+const PIPELINE_STEPS = [
+  { label: 'Analyzing your question…', icon: '🤖', delay: 0 },
+  { label: 'Classifying domain & topic…', icon: '📚', delay: 4 },
+  { label: 'Routing to top experts…', icon: '🎯', delay: 9 },
+  { label: 'Examining expert candidates…', icon: '🧪', delay: 16 },
+  { label: 'Selecting best matches…', icon: '✅', delay: 22 },
+];
+
+function AdOverlay({ onSkip, onDone, apiPromise }: {
+  onSkip: () => void;
+  onDone: (data: Analysis) => void;
+  apiPromise: Promise<Analysis>;
+}) {
+  const [timeLeft, setTimeLeft] = useState(5);
+  const [canSkip, setCanSkip] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [apiDone, setApiDone] = useState(false);
+  const [apiData, setApiData] = useState<Analysis | null>(null);
+  const adRef = useRef(ADS[Math.floor(Math.random() * ADS.length)]);
+  const ad = adRef.current;
+
+  useEffect(() => {
+    apiPromise.then(data => { setApiData(data); setApiDone(true); });
+  }, [apiPromise]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(prev => {
+        const next = prev + 1;
+        const nextStep = PIPELINE_STEPS.findLastIndex(s => s.delay <= next);
+        if (nextStep >= 0) setCurrentStep(nextStep);
+        return next;
+      });
+      setTimeLeft(prev => {
+        if (prev <= 1) { setCanSkip(true); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  function handleSkip() {
+    if (apiDone && apiData) onDone(apiData);
+    else onSkip();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-lg mx-4 space-y-4">
+        {/* Ad card */}
+        <div className={`rounded-3xl bg-gradient-to-br ${ad.color} p-8 text-white shadow-2xl`}>
+          <div className="text-5xl mb-4">{ad.icon}</div>
+          <h2 className="text-2xl font-black mb-2">{ad.title}</h2>
+          <p className="text-white/80 text-sm mb-6">{ad.body}</p>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-white/60 uppercase tracking-widest font-medium">Sponsored</span>
+            <button className="px-5 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-semibold transition-all border border-white/30">
+              {ad.cta} →
+            </button>
+          </div>
+        </div>
+
+        {/* Pipeline progress */}
+        <div className="bg-white rounded-2xl p-5 shadow-xl">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Processing your question</div>
+          <div className="space-y-2">
+            {PIPELINE_STEPS.map((step, i) => (
+              <div key={step.label} className={`flex items-center gap-3 transition-all duration-500 ${i <= currentStep ? 'opacity-100' : 'opacity-30'}`}>
+                <span className="text-base w-6 text-center">{i < currentStep ? '✅' : i === currentStep ? step.icon : '○'}</span>
+                <span className={`text-sm ${i === currentStep ? 'text-brand-700 font-semibold' : 'text-slate-600'}`}>{step.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Skip button */}
+        <div className="flex justify-end">
+          {canSkip ? (
+            <button
+              onClick={handleSkip}
+              className="px-6 py-2.5 bg-white text-slate-800 rounded-xl font-semibold text-sm shadow-lg hover:bg-slate-50 transition-all flex items-center gap-2"
+            >
+              {apiDone ? 'View Results →' : 'Skip Ad →'}
+            </button>
+          ) : (
+            <div className="px-6 py-2.5 bg-white/20 text-white rounded-xl text-sm font-medium backdrop-blur-sm">
+              Skip in {timeLeft}s
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AskQuestion() {
   const [step, setStep] = useState<Step>('input');
   const [title, setTitle] = useState('');
@@ -22,14 +124,14 @@ export default function AskQuestion() {
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [consultationId, setConsultationId] = useState('');
+  const [apiPromise, setApiPromise] = useState<Promise<Analysis> | null>(null);
   const { t, dir } = useLang();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    setStep('analyzing');
 
-    try {
+    const promise = (async (): Promise<Analysis> => {
       const res = await fetch('/api/consultations', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description, urgency }),
@@ -45,19 +147,17 @@ export default function AskQuestion() {
       });
       const aData = await aRes.json() as Analysis & { error?: string };
       if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
-      setAnalysis(aData);
-      setStep('result');
-    } catch (err) {
+      return aData;
+    })();
+
+    promise.catch(err => {
       setError(err instanceof Error ? err.message : 'Something went wrong');
       setStep('input');
-    }
-  }
+    });
 
-  if (step === 'analyzing') return <AnalyzingScreen />;
-  if (step === 'result' && analysis) return (
-    <AnalysisResult analysis={analysis} consultationId={consultationId}
-      onReset={() => { setStep('input'); setTitle(''); setDescription(''); setAnalysis(null); }} />
-  );
+    setApiPromise(promise);
+    setStep('ad');
+  }
 
   const urgencyOpts = [
     { key: 'low',      label: t('ask_low'),      icon: '🔵' },
@@ -65,6 +165,24 @@ export default function AskQuestion() {
     { key: 'high',     label: t('ask_high'),      icon: '🟡' },
     { key: 'critical', label: t('ask_critical'),  icon: '🔴' },
   ];
+
+  if (step === 'ad' && apiPromise) return (
+    <AdOverlay
+      apiPromise={apiPromise}
+      onDone={data => { setAnalysis(data); setStep('result'); }}
+      onSkip={() => {
+        apiPromise.then(data => { setAnalysis(data); setStep('result'); }).catch(() => setStep('input'));
+      }}
+    />
+  );
+
+  if (step === 'result' && analysis) return (
+    <AnalysisResult
+      analysis={analysis}
+      consultationId={consultationId}
+      onReset={() => { setStep('input'); setTitle(''); setDescription(''); setAnalysis(null); }}
+    />
+  );
 
   return (
     <div className="p-8 max-w-2xl mx-auto" dir={dir}>
@@ -105,22 +223,6 @@ export default function AskQuestion() {
 
         <button type="submit" className="btn-primary w-full py-3 text-base font-semibold">{t('ask_submit')}</button>
       </form>
-    </div>
-  );
-}
-
-function AnalyzingScreen() {
-  const { t } = useLang();
-  return (
-    <div className="flex flex-col items-center justify-center h-full p-8 gap-6">
-      <div className="relative w-24 h-24">
-        <div className="w-24 h-24 rounded-full border-4 border-brand-100 border-t-brand-600 animate-spin" />
-        <div className="absolute inset-0 flex items-center justify-center text-3xl">🤖</div>
-      </div>
-      <div className="text-center space-y-2">
-        <h2 className="text-xl font-bold text-slate-900">{t('ask_analyzing')}</h2>
-        <p className="text-slate-500 text-sm">{t('ask_analyzing_sub')}</p>
-      </div>
     </div>
   );
 }
@@ -190,6 +292,7 @@ function AnalysisResult({ analysis, consultationId, onReset }: { analysis: Analy
       <div className="card text-center space-y-3">
         <div className="text-3xl">⚡</div>
         <h3 className="font-bold text-slate-900">{t('ask_comp_started')}</h3>
+        <p className="text-sm text-slate-500">Experts are being notified and examined. You'll receive a chat invitation when an expert passes.</p>
         <div className="text-xs text-slate-400">ID: {consultationId}</div>
       </div>
     </div>

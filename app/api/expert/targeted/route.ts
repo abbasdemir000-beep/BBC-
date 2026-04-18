@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       consultation: {
         include: {
           domain: true,
-          user: { select: { id: true, name: true, avatar: true } },
+          user: { select: { id: true } },
           aiAnalysis: true,
           submissions: {
             where: { expertId: session.expertId },
@@ -33,7 +33,10 @@ export async function GET(req: NextRequest) {
     similarityScore: r.similarityScore,
     rank: r.rankPosition,
     accepted: r.accepted,
-    consultation: r.consultation,
+    consultation: {
+      ...r.consultation,
+      user: { id: r.consultation.user.id, name: 'Anonymous', avatar: null },
+    },
     mySubmission: r.consultation.submissions[0] ?? null,
   }));
 
