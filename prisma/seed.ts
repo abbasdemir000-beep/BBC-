@@ -245,18 +245,36 @@ const CONSULTATIONS = [
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Create a test user
+  // Create demo users with passwords (bcrypt hash of 'demo1234')
+  const { hash } = await import('bcryptjs');
+  const demoHash = await hash('demo1234', 12);
+
   const user = await prisma.user.upsert({
     where: { email: 'demo@marketplace.com' },
-    update: {},
+    update: { passwordHash: demoHash },
     create: {
       email: 'demo@marketplace.com',
       name: 'Demo User',
       role: 'user',
       reputation: 150,
+      passwordHash: demoHash,
     },
   });
-  console.log(`✓ User: ${user.name}`);
+  console.log(`✓ User: ${user.name} (email: demo@marketplace.com, password: demo1234)`);
+
+  // Admin user
+  await prisma.user.upsert({
+    where: { email: 'admin@marketplace.com' },
+    update: { passwordHash: demoHash },
+    create: {
+      email: 'admin@marketplace.com',
+      name: 'Admin',
+      role: 'admin',
+      reputation: 9999,
+      passwordHash: demoHash,
+    },
+  });
+  console.log('✓ Admin: admin@marketplace.com / demo1234');
 
   // Create domains with subdomains and topics
   const domainMap: Record<string, string> = {};

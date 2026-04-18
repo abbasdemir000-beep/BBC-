@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import ChatInterface from './ChatInterface';
+import AnswerViewer from './AnswerViewer';
 
 interface Submission {
   id: string;
@@ -47,6 +48,7 @@ export default function MyQuestions() {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeChat, setActiveChat] = useState<string | null>(null);
+  const [viewingAnswers, setViewingAnswers] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch('/api/consultations/mine');
@@ -74,6 +76,7 @@ export default function MyQuestions() {
   return (
     <div className="p-8 space-y-6">
       {activeChat && <ChatInterface roomId={activeChat} onClose={() => { setActiveChat(null); load(); }} />}
+      {viewingAnswers && <AnswerViewer consultationId={viewingAnswers} onClose={() => setViewingAnswers(null)} />}
 
       <div>
         <h1 className="text-2xl font-bold text-slate-900">My Questions</h1>
@@ -93,6 +96,7 @@ export default function MyQuestions() {
               key={c.id}
               consultation={c}
               onOpenChat={setActiveChat}
+              onViewAnswers={() => setViewingAnswers(c.id)}
             />
           ))}
         </div>
@@ -101,9 +105,10 @@ export default function MyQuestions() {
   );
 }
 
-function ConsultationCard({ consultation: c, onOpenChat }: {
+function ConsultationCard({ consultation: c, onOpenChat, onViewAnswers }: {
   consultation: Consultation;
   onOpenChat: (roomId: string) => void;
+  onViewAnswers: () => void;
 }) {
   return (
     <div className="card border border-slate-100 hover:border-slate-200 transition-all">
@@ -127,9 +132,17 @@ function ConsultationCard({ consultation: c, onOpenChat }: {
             <span className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
-        <div className="flex-shrink-0 text-right">
-          <div className="text-2xl font-bold text-slate-700">{c._count.submissions}</div>
-          <div className="text-xs text-slate-400">answers</div>
+        <div className="flex-shrink-0 text-right space-y-2">
+          <div>
+            <div className="text-2xl font-bold text-slate-700">{c._count.submissions}</div>
+            <div className="text-xs text-slate-400">answers</div>
+          </div>
+          {c._count.submissions > 0 && (
+            <button onClick={onViewAnswers}
+              className="px-3 py-1.5 bg-brand-100 text-brand-700 rounded-xl text-xs font-semibold hover:bg-brand-200 transition-all">
+              📖 View Answers
+            </button>
+          )}
         </div>
       </div>
 

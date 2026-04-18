@@ -10,14 +10,18 @@ import NotificationsPanel from '@/components/NotificationsPanel';
 import MyQuestions from '@/components/MyQuestions';
 import AuthModal from '@/components/AuthModal';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
+import SearchPage from '@/components/SearchPage';
+import Leaderboard from '@/components/Leaderboard';
+import AdminPanel from '@/components/AdminPanel';
 import { useLang } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 
-type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard' | 'notifications' | 'my-questions';
+type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard' | 'notifications' | 'my-questions' | 'search' | 'leaderboard' | 'admin';
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>('dashboard');
   const [showAuth, setShowAuth] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t, dir } = useLang();
   const { user, expert, unreadNotifications, logout, loading } = useAuth();
 
@@ -32,18 +36,42 @@ export default function Home() {
     { id: 'expert-dashboard', label: 'My Targeted',        icon: '🎯', expertOnly: true },
     { id: 'my-questions',     label: 'My Questions',       icon: '📋', authOnly: true },
     { id: 'notifications',    label: 'Notifications',      icon: '🔔', authOnly: true },
+    { id: 'search',           label: 'Search',             icon: '🔍' },
+    { id: 'leaderboard',      label: 'Leaderboard',        icon: '🏅' },
+    { id: 'admin',            label: 'Admin',              icon: '⚙️', authOnly: true },
   ];
 
   const visibleNav = NAV.filter(n =>
     (!n.expertOnly || isExpert) && (!n.authOnly || !!user)
   );
 
+  function navigate(t: Tab) { setTab(t); setSidebarOpen(false); }
+
   return (
     <div className="flex min-h-screen" dir={dir}>
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
+      {/* Mobile overlay */}
+      {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />}
+
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 flex items-center px-4 py-3 shadow-sm">
+        <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl hover:bg-slate-100 text-slate-600 me-3">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">K</div>
+          <span className="font-bold text-slate-900 text-sm">KnowledgeMarket</span>
+        </div>
+        {unreadNotifications > 0 && (
+          <button onClick={() => navigate('notifications')} className="ms-auto w-6 h-6 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+            {unreadNotifications > 9 ? '9+' : unreadNotifications}
+          </button>
+        )}
+      </div>
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-e border-slate-100 flex flex-col shadow-sm flex-shrink-0">
+      <aside className={`fixed md:static inset-y-0 start-0 z-40 w-64 bg-white border-e border-slate-100 flex flex-col shadow-sm flex-shrink-0 transition-transform md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : dir === 'rtl' ? 'translate-x-full' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">K</div>
@@ -58,7 +86,7 @@ export default function Home() {
           {visibleNav.map(item => (
             <button
               key={item.id}
-              onClick={() => setTab(item.id)}
+              onClick={() => navigate(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-start ${
                 tab === item.id
                   ? 'bg-brand-50 text-brand-700 shadow-sm'
@@ -88,7 +116,7 @@ export default function Home() {
                   </div>
                   {unreadNotifications > 0 && (
                     <button
-                      onClick={() => setTab('notifications')}
+                      onClick={() => navigate('notifications')}
                       className="w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold flex-shrink-0 hover:bg-red-600 transition-colors"
                     >
                       {unreadNotifications > 9 ? '9+' : unreadNotifications}
@@ -115,7 +143,7 @@ export default function Home() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pt-14 md:pt-0">
         {tab === 'dashboard'        && <Dashboard />}
         {tab === 'experts'          && <ExpertsDirectory />}
         {tab === 'consultations'    && <ConsultationsBoard />}
@@ -124,6 +152,9 @@ export default function Home() {
         {tab === 'expert-dashboard' && <ExpertDashboard />}
         {tab === 'my-questions'     && <MyQuestions />}
         {tab === 'notifications'    && <NotificationsPanel />}
+        {tab === 'search'           && <SearchPage />}
+        {tab === 'leaderboard'      && <Leaderboard />}
+        {tab === 'admin'            && <AdminPanel />}
       </main>
     </div>
   );

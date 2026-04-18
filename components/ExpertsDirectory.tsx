@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import ExpertProfileModal from './ExpertProfileModal';
 
 interface Expert {
   id: string; name: string; bio: string; yearsExperience: number;
@@ -19,6 +20,7 @@ export default function ExpertsDirectory() {
   const [search, setSearch] = useState('');
   const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedExpert, setSelectedExpert] = useState<string | null>(null);
   const { t, dir } = useLang();
 
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function ExpertsDirectory() {
 
   return (
     <div className="p-8 space-y-6" dir={dir}>
+      {selectedExpert && <ExpertProfileModal expertId={selectedExpert} onClose={() => setSelectedExpert(null)} />}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">{t('exp_title')}</h1>
         <p className="text-slate-500 text-sm mt-1">{total} {t('exp_title').toLowerCase()}</p>
@@ -65,7 +68,7 @@ export default function ExpertsDirectory() {
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
-          {experts.map(expert => <ExpertCard key={expert.id} expert={expert} />)}
+          {experts.map(expert => <ExpertCard key={expert.id} expert={expert} onViewProfile={() => setSelectedExpert(expert.id)} />)}
         </div>
       )}
 
@@ -80,10 +83,10 @@ export default function ExpertsDirectory() {
   );
 }
 
-function ExpertCard({ expert }: { expert: Expert }) {
+function ExpertCard({ expert, onViewProfile }: { expert: Expert; onViewProfile: () => void }) {
   const { t } = useLang();
   return (
-    <div className="card hover:shadow-md transition-shadow">
+    <div className="card hover:shadow-md transition-shadow cursor-pointer" onClick={onViewProfile}>
       <div className="flex items-start gap-3 mb-3">
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
           {expert.name.charAt(0)}

@@ -125,6 +125,87 @@ export default function RewardPanel() {
           </div>
         </div>
       )}
+
+      {/* Withdrawal section */}
+      <WithdrawalSection totalPoints={totalPoints} />
+    </div>
+  );
+}
+
+function WithdrawalSection({ totalPoints }: { totalPoints: number }) {
+  const [method, setMethod] = useState<'paypal' | 'bank'>('paypal');
+  const [amount, setAmount] = useState(1000);
+  const [details, setDetails] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+
+  async function handleWithdraw(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true); setError(''); setSuccess('');
+    const res = await fetch('/api/withdraw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, method, details }),
+    });
+    const data = await res.json();
+    if (!res.ok) setError(data.error || 'Failed');
+    else setSuccess(data.message || 'Withdrawal request submitted!');
+    setSubmitting(false);
+  }
+
+  const usd = (amount * 0.001).toFixed(2);
+
+  return (
+    <div className="card space-y-4">
+      <h2 className="font-semibold text-slate-800 flex items-center gap-2">💸 Withdraw Points</h2>
+      <p className="text-sm text-slate-500">Minimum 1,000 points ($1.00). Processing takes 3-5 business days.</p>
+
+      {success ? (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-green-700 text-sm font-medium">{success}</div>
+      ) : (
+        <form onSubmit={handleWithdraw} className="space-y-4">
+          <div>
+            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Amount (points)</label>
+            <div className="flex items-center gap-3">
+              <input type="range" min={1000} max={Math.max(1000, totalPoints)} step={500}
+                value={amount} onChange={e => setAmount(Number(e.target.value))}
+                className="flex-1 accent-brand-500" />
+              <span className="text-lg font-bold text-brand-600 w-24 text-right">{amount.toLocaleString()} pts</span>
+            </div>
+            <div className="text-center text-sm text-green-700 font-semibold mt-1">= ${usd} USD</div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Payment Method</label>
+            <div className="flex gap-3">
+              {(['paypal', 'bank'] as const).map(m => (
+                <label key={m} className={`flex-1 flex items-center justify-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all ${method === m ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                  <input type="radio" name="method" value={m} checked={method === m} onChange={() => setMethod(m)} className="sr-only" />
+                  <span>{m === 'paypal' ? '🅿️' : '🏦'}</span>
+                  <span className="text-sm font-semibold capitalize">{m === 'paypal' ? 'PayPal' : 'Bank Transfer'}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">
+              {method === 'paypal' ? 'PayPal Email' : 'IBAN / Account Number'}
+            </label>
+            <input value={details} onChange={e => setDetails(e.target.value)} required
+              placeholder={method === 'paypal' ? 'your@paypal.com' : 'IBAN or account number'}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+
+          {error && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{error}</div>}
+
+          <button type="submit" disabled={submitting || totalPoints < 1000}
+            className="w-full py-3 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-teal-700 disabled:opacity-60 transition-all">
+            {submitting ? 'Submitting…' : totalPoints < 1000 ? 'Need 1,000+ points' : `Withdraw $${usd} →`}
+          </button>
+        </form>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import ChatInterface from './ChatInterface';
 import ExamModal from './ExamModal';
+import AnswerSubmitModal from './AnswerSubmitModal';
 
 interface Submission { id: string; status: string; aiScore: number | null; examScore: number | null; finalScore: number | null; }
 interface Consultation {
@@ -30,6 +31,7 @@ export default function ExpertDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeChat, setActiveChat] = useState<ChatRoomInfo | null>(null);
   const [activeExam, setActiveExam] = useState<ExamInfo | null>(null);
+  const [activeSubmit, setActiveSubmit] = useState<{ id: string; title: string } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -72,6 +74,14 @@ export default function ExpertDashboard() {
   return (
     <div className="p-8 space-y-6">
       {activeChat && <ChatInterface roomId={activeChat.id} onClose={() => setActiveChat(null)} />}
+      {activeSubmit && (
+        <AnswerSubmitModal
+          consultationId={activeSubmit.id}
+          consultationTitle={activeSubmit.title}
+          onClose={() => setActiveSubmit(null)}
+          onSubmitted={() => { setActiveSubmit(null); load(); }}
+        />
+      )}
       {activeExam && expert && (
         <ExamModal
           consultationId={activeExam.consultationId}
@@ -113,6 +123,7 @@ export default function ExpertDashboard() {
                   setActiveExam({ consultationId: item.consultation.id, expertId: expert.id, submissionId: item.mySubmission.id });
                 }
               }}
+              onSubmitAnswer={() => setActiveSubmit({ id: item.consultation.id, title: item.consultation.title })}
             />
           ))}
         </div>
@@ -121,16 +132,18 @@ export default function ExpertDashboard() {
   );
 }
 
-function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam }: {
+function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam, onSubmitAnswer }: {
   item: Targeted;
   processing: boolean;
   onAccept: (accepted: boolean) => void;
   onOpenChat: () => void;
   onTakeExam: () => void;
+  onSubmitAnswer: () => void;
 }) {
   const { consultation, mySubmission, similarityScore, rank, accepted } = item;
   const hasChatAccess = mySubmission && (mySubmission.examScore ?? 0) >= 60;
   const canTakeExam = accepted && mySubmission && !mySubmission.examScore;
+  const canSubmitAnswer = accepted && !mySubmission;
 
   return (
     <div className="card border border-slate-100 hover:border-brand-200 transition-all">
@@ -194,6 +207,14 @@ function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam }: {
               <span className="text-xs bg-slate-100 text-slate-500 px-3 py-1.5 rounded-xl font-medium">Declined</span>
             )}
 
+            {canSubmitAnswer && (
+              <button
+                onClick={onSubmitAnswer}
+                className="ms-auto px-4 py-2 bg-purple-500 text-white rounded-xl text-sm font-semibold hover:bg-purple-600 transition-all flex items-center gap-2"
+              >
+                ✍️ Submit Answer
+              </button>
+            )}
             {canTakeExam && (
               <button
                 onClick={onTakeExam}
