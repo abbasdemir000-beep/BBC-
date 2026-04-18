@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* Fonts loaded via layout.tsx <head> for SSR compatibility */
 
 @tailwind base;
 @tailwind components;
@@ -16,7 +16,7 @@
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', 'Noto Sans Arabic', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

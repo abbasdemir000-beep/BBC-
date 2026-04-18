@@ -1,9 +1,47 @@
 /**
- * Smart rule-based AI engine — full fallback when no valid Anthropic key.
- * Covers: classification, embeddings, evaluation, exam generation, anti-cheat.
+ * Smart rule-based AI engine — no external API calls.
+ * Supports English, Arabic (العربية), and Kurdish (کوردی).
  */
 
-// ── Domain keyword maps ─────────────────────────────────────────────────────
+// ── Arabic keyword maps ─────────────────────────────────────────────────────
+const ARABIC_DOMAIN_KEYWORDS: Record<string, string[]> = {
+  medicine:          ['مرض','أعراض','تشخيص','علاج','مريض','دواء','جراحة','طبيب','مستشفى','عيادة','عدوى','فيروس','بكتيريا','سرطان','قلب','دم','مخ','رئة','كبد','كلية','التهاب','حمى','ألم','صيدلانية','تشريح','أمراض','أشعة','صداع','ضغط','سكري','ربو','صيدلة','تمريض'],
+  engineering:       ['هندسة','تصميم','إنشاء','خرسانة','فولاذ','جسر','حمل','إجهاد','أساس','ميكانيكي','كهربائي','كيميائي','مدني','تصنيع','لحام','توربين','ضغط','قدرة','دائرة','مقاومة'],
+  mathematics:       ['رياضيات','معادلة','تفاضل','تكامل','مصفوفة','متجه','كثيرة حدود','إحصاء','احتمال','هندسة','جبر','نظرية','برهان','حد','متسلسلة','خطي','مشتقة'],
+  physics:           ['فيزياء','قوة','طاقة','زخم','كم','موجة','جسيم','نسبية','جاذبية','كهرمغناطيسي','حرارة','إنتروبيا','فوتون','إلكترون','نواة','ذرة','تردد','بصريات','سرعة','تسارع'],
+  'computer-science':['خوارزمية','برمجة','كود','برنامج','قاعدة بيانات','شبكة','أمن','تعلم آلي','ذكاء اصطناعي','شبكة عصبية','بايثون','جافاسكريبت','سحابة','تشفير','خادم','واجهة برمجية'],
+  law:               ['قانون','عقد','محكمة','قاضٍ','دعوى','مسؤولية','ملكية فكرية','براءة اختراع','حقوق النشر','تشريع','دستور','جنائي','مدني','تحكيم','امتثال'],
+  business:          ['أعمال','إيرادات','ربح','تقييم','شركة ناشئة','مستثمر','تمويل','تسويق','استراتيجية','عميل','منتج','سوق','نمو','اندماج','استحواذ'],
+  chemistry:         ['كيمياء','جزيء','ذرة','تفاعل','مركب','عنصر','حمض','قاعدة','أكسدة','اختزال','محفز','بوليمر','عضوي','غير عضوي','طيف','تركيب'],
+  biology:           ['أحياء','خلية','جين','حمض نووي','بروتين','إنزيم','تطور','بيئة','كروموسوم','طفرة','مناعة','فيروس','بكتيريا','جينوم','انقسام'],
+  education:         ['تعليم','تدريس','مناهج','تقييم','طالب','تربية','معرفة','فصل دراسي','تعلم إلكتروني','دافعية','مشاركة','تغذية راجعة'],
+  psychology:        ['علم نفس','سلوك','معرفة','عاطفة','ذاكرة','إدراك','شخصية','اضطراب','علاج','دافعية','صدمة','قلق','اكتئاب','اجتماعي'],
+  economics:         ['اقتصاد','ناتج محلي','تضخم','سياسة نقدية','عرض','طلب','مرونة','توازن','تجارة','عملة','ركود','بطالة'],
+  history:           ['تاريخ','حرب','إمبراطورية','ثورة','حضارة','استعمار','سياسة','مجتمع','ثقافة','قديم','حديث','ملكية'],
+  philosophy:        ['فلسفة','أخلاق','ميتافيزيقا','منطق','وعي','حرية الإرادة','عدالة','حقيقة','معرفة'],
+  arts:              ['فن','رسم','نحت','موسيقى','أدب','مسرح','سينما','جماليات','نقد','تصميم'],
+};
+
+// ── Kurdish (Sorani) keyword maps ───────────────────────────────────────────
+const KURDISH_DOMAIN_KEYWORDS: Record<string, string[]> = {
+  medicine:          ['نەخۆشی','نیشانە','تشخیص','چارەسەر','نەخۆش','دەرمان','نەشتەرگەری','پزیشک','نەخۆشخانە','گوێزراوە','ئەندامی','خوێن','مێشک','سەک','میانرووک','گورچیلە','تاوباری','ئازار','گەرمی','گرتنەبەر','لاشەپیزیشکی','ئەفرەتی'],
+  engineering:       ['ئەندازیاری','دیزاین','دروستکردن','بەتۆن','پولاو','پرد','بار','بنکە','مەکانیکی','کارەبایی','کیمیایی','شاری'],
+  mathematics:       ['ماتماتیک','هاوکێشە','ژمارە','ئامار','حیساب','نیگەبان','جەبر','ئەندازە','ئەحتیمال','ئامارکاری'],
+  physics:           ['فیزیا','هێز','وزە','پێگەی وزە','گڕ','تیشک','ئاکرۆ','ئەرزیشت','کارەبا','گەرما','ئێلیکترۆن','ئاتۆم'],
+  'computer-science':['کۆمپیوتەر','پرۆگرامکردن','کۆد','سۆفتوێر','داتابەیس','تۆڕ','ئەمنیەت','یتعلم ئۆتۆماتیکی','هۆشی دەستکرد','پایتۆن','سێور'],
+  law:               ['یاسا','گرێبەست','دادگا','بڕیار','پاراستن','خاوەنداری','مافی ئەدەبی','دەستوور','تاوانی'],
+  business:          ['بازرگانی','داهات','قازانج','بازار','کارمەند','فرۆشتن','گرنگیدان','مۆشتەری','بەرهەم'],
+  chemistry:         ['کیمیا','مۆلیکول','ئاتۆم','تیکراوە','ئەسیتی','بنکە','ئۆکسیژن','کاتالیزەر'],
+  biology:           ['بیۆلۆژیا','خانە','جین','دی ئێن ئەی','پرۆتین','ئینزیم','پەرەسەندن','ژینگە','کرۆموسۆم'],
+  education:         ['پەروەردە','مامۆستایەتی','خوێندن','خوێندکار','پەیمانگا','فێرکردن','پەرەپێدان'],
+  psychology:        ['دەروونناسی','ڕەفتار','زانست','هەست','بیرکردنەوە','کەسایەتی','دەروونپزیشکی'],
+  economics:         ['ئابووری','بازار','بەها','داهات','کرێ','فرۆشتن','بازرگانی','دارایی'],
+  history:           ['مێژوو','جەنگ','شارستانیەت','شۆڕش','سیاسەت','کۆمەڵگا','کۆن','نوێ'],
+  philosophy:        ['فەلسەفە','ئەخلاق','لۆژیک','زانست','مافی مرۆڤ','دادپەروەری'],
+  arts:              ['هونەر','وێنەکێشی','مووزیک','وێژە','شانۆ','سینەما','دیزاین'],
+};
+
+// ── English keyword maps ────────────────────────────────────────────────────
 const DOMAIN_KEYWORDS: Record<string, string[]> = {
   medicine: ['disease','symptom','diagnosis','treatment','patient','clinical','medical','drug','therapy','surgery','pain','fever','infection','virus','bacteria','cancer','heart','blood','brain','lung','liver','kidney','scleritis','ophthalmology','cardiology','neurology','oncology','pharmacology','dose','prescription','hospital','doctor','physician','nurse','anatomy','physiology','pathology','radiology'],
   engineering: ['structural','load','stress','strain','beam','column','foundation','concrete','steel','bridge','design','construction','mechanical','thermal','fluid','circuit','voltage','current','resistance','power','motor','engine','turbine','compressor','valve','pipe','manufacturing','machining','welding','CAD','finite element'],
@@ -48,14 +86,49 @@ export interface SmartClassification {
   keywords: string[];
 }
 
+export function detectLanguage(text: string): 'ar' | 'ku' | 'en' {
+  const arabicRange = /[\u0600-\u06FF]/g;
+  const arabicMatches = (text.match(arabicRange) || []).length;
+  if (arabicMatches < 3) return 'en';
+  // Kurdish Sorani-specific letters not in standard Arabic
+  const kurdishSpecific = /[\u06A9\u06AF\u0695\u06CC\u06BE\u0698]/g;
+  const kurdishMatches = (text.match(kurdishSpecific) || []).length;
+  return kurdishMatches >= 2 ? 'ku' : 'ar';
+}
+
+// Arabic/Kurdish question type patterns
+const ARABIC_QUESTION_PATTERNS: Record<string, string[]> = {
+  explanation:     ['ما هو','ما هي','اشرح','كيف يعمل','عرّف','ما معنى','أخبرني عن','وصف'],
+  problem_solving: ['احسب','أوجد','حل','برهن','اشتق','كيف أصلح','نفّذ','اكتب كود'],
+  advice:          ['هل يجب','أنصح','أفضل طريقة','استراتيجية','اقتراح','ماذا تقترح','أيهما أفضل'],
+  diagnosis:       ['لماذا','ما سبب','شخّص','حدد','السبب الجذري','مشكلة في'],
+  review:          ['راجع','قيّم','تقييم','هل هذا صحيح','تحقق من','حسّن'],
+};
+
+const KURDISH_QUESTION_PATTERNS: Record<string, string[]> = {
+  explanation:     ['چییە','چۆنە','ڕوونکردنەوە','پێناسەکردن','چی مانایە','باسی'],
+  problem_solving: ['چارەسەرکردن','دۆزینەوە','پرووفکردن','چۆن درووستبکەم'],
+  advice:          ['پێشنیارکردن','باشترین ڕێگا','ئایا دەبێت','کامیان'],
+  diagnosis:       ['بۆچی','هۆکاری','دیاریکردن','کێشەی'],
+  review:          ['هەڵسەنگاندن','پشکنین','ئایا ڕاستە','باشترکردن'],
+};
+
 export function smartClassify(text: string): SmartClassification {
   const lower = text.toLowerCase();
   const words = lower.split(/\W+/).filter(w => w.length > 2);
+  const detectedLang = detectLanguage(text);
 
-  // Score each domain
+  // Score each domain — combine English + Arabic/Kurdish keywords
   const scores: Record<string, number> = {};
   for (const [domain, keywords] of Object.entries(DOMAIN_KEYWORDS)) {
-    scores[domain] = keywords.filter(k => lower.includes(k)).length;
+    const enScore = keywords.filter(k => lower.includes(k)).length;
+    let i18nScore = 0;
+    if (detectedLang === 'ar') {
+      i18nScore = (ARABIC_DOMAIN_KEYWORDS[domain] ?? []).filter(k => text.includes(k)).length * 1.5;
+    } else if (detectedLang === 'ku') {
+      i18nScore = (KURDISH_DOMAIN_KEYWORDS[domain] ?? []).filter(k => text.includes(k)).length * 1.5;
+    }
+    scores[domain] = enScore + i18nScore;
   }
 
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
@@ -63,12 +136,19 @@ export function smartClassify(text: string): SmartClassification {
   const topScore = sorted[0][1];
   const confidence = Math.min(0.98, 0.5 + topScore * 0.08);
 
-  // Detect question type
+  // Detect question type (English + Arabic + Kurdish patterns)
   let questionType: SmartClassification['questionType'] = 'explanation';
-  for (const [type, patterns] of Object.entries(QUESTION_TYPE_PATTERNS)) {
-    if (patterns.some(p => lower.includes(p))) {
-      questionType = type as SmartClassification['questionType'];
-      break;
+  const allTypePatterns = [
+    QUESTION_TYPE_PATTERNS,
+    detectedLang === 'ar' ? ARABIC_QUESTION_PATTERNS : {},
+    detectedLang === 'ku' ? KURDISH_QUESTION_PATTERNS : {},
+  ];
+  outer: for (const patternSet of allTypePatterns) {
+    for (const [type, patterns] of Object.entries(patternSet)) {
+      if (patterns.some(p => lower.includes(p) || text.includes(p))) {
+        questionType = type as SmartClassification['questionType'];
+        break outer;
+      }
     }
   }
 

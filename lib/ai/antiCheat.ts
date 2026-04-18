@@ -12,7 +12,7 @@ export interface AntiCheatResult {
 const AI_SIGNALS = [
   /\bIn conclusion\b/i, /\bIt is important to note\b/i, /\bAs an AI\b/i,
   /\bCertainly!\b/i, /\bAbsolutely!\b/i, /\bGreat question\b/i,
-  /\bIn summary\b/i, /\bFirstly.*Secondly.*Finally/is,
+  /\bIn summary\b/i, /\bFirstly\b/i,
   /\bI hope this helps\b/i, /\bPlease note that\b/i,
 ];
 
