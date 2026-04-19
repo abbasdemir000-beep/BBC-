@@ -62,7 +62,7 @@ export default function ChatInterface({ roomId, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end p-6 pointer-events-none">
-      <div className="w-96 h-[560px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col pointer-events-auto overflow-hidden">
+      <div className="w-96 h-[560px] bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border)] flex flex-col pointer-events-auto overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-brand-500 to-purple-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -78,7 +78,7 @@ export default function ChatInterface({ roomId, onClose }: Props) {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
-            <div className="text-center text-slate-400 text-sm py-8">
+            <div className="text-center text-[var(--text-muted)] text-sm py-8">
               <div className="text-3xl mb-2">👋</div>
               <p>Start the conversation!</p>
             </div>
@@ -89,18 +89,18 @@ export default function ChatInterface({ roomId, onClose }: Props) {
               <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] group`}>
                   {!isMine && (
-                    <div className="text-xs text-slate-500 mb-1 px-1">
+                    <div className="text-xs text-[var(--text-muted)] mb-1 px-1">
                       {msg.senderName} · {msg.senderRole}
                     </div>
                   )}
                   <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     isMine
                       ? 'bg-brand-500 text-white rounded-br-md'
-                      : 'bg-slate-100 text-slate-800 rounded-bl-md'
+                      : 'bg-[var(--bg)] text-[var(--text-secondary)] rounded-bl-md'
                   }`}>
                     {msg.content}
                   </div>
-                  <div className={`text-xs text-slate-400 mt-0.5 px-1 ${isMine ? 'text-right' : 'text-left'}`}>
+                  <div className={`text-xs text-[var(--text-muted)] mt-0.5 px-1 ${isMine ? 'text-right' : 'text-left'}`}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -111,12 +111,12 @@ export default function ChatInterface({ roomId, onClose }: Props) {
         </div>
 
         {/* Input */}
-        <form onSubmit={sendMessage} className="p-3 border-t border-slate-100 flex gap-2 flex-shrink-0">
+        <form onSubmit={sendMessage} className="p-3 border-t border-[var(--border)] flex gap-2 flex-shrink-0">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Type a message…"
-            className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="flex-1 border border-[var(--border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <button
             type="submit"
