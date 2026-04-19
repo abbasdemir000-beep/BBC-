@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { smartEvaluate } from '@/lib/ai/smartEngine';
-import { runAntiCheat } from '@/lib/ai/antiCheat';
+import { geminiAntiCheat } from '@/lib/ai/geminiAntiCheat';
+import { geminiEvaluate } from '@/lib/ai/geminiEvaluator';
 import { calcFinalScore } from '@/lib/utils';
 
 const SubmitSchema = z.object({
@@ -54,23 +54,17 @@ export async function POST(req: NextRequest) {
   });
   if (existing) return NextResponse.json({ error: 'You have already submitted an answer for this consultation' }, { status: 409 });
 
-  // Get previous submissions for plagiarism check
-  const previous = await prisma.submission.findMany({
-    where: { consultationId: data.consultationId },
-    select: { content: true },
-  });
-
-  // Anti-cheat (algorithmic, no API needed)
-  const antiCheat = await runAntiCheat(
+  // Anti-fraud via Gemini 1.5 Pro (falls back to heuristic engine if key not set)
+  const antiCheat = await geminiAntiCheat(
     data.content,
+    consultation.description,
     data.expertId,
-    previous.map(s => s.content),
-    data.timeSpentSeconds
   );
 
-  // Smart AI evaluation (rule-based, no API needed)
+  // Evaluation via Gemini 1.5 Pro (falls back to heuristic engine if key not set)
   const domainSlug = consultation.domain?.slug ?? consultation.aiAnalysis?.detectedDomain ?? 'general';
-  const evaluation = smartEvaluate(consultation.description, data.content, domainSlug);
+  const difficulty = consultation.difficulty ?? consultation.aiAnalysis?.difficulty ?? 'intermediate';
+  const evaluation = await geminiEvaluate(data.content, consultation.description, domainSlug, difficulty);
 
   // Create submission
   const submission = await prisma.submission.create({
@@ -87,11 +81,11 @@ export async function POST(req: NextRequest) {
       clarityScore: evaluation.clarityScore,
       aiScore: evaluation.aiScore,
       aiGeneratedProb: antiCheat.aiGeneratedProb,
-      similarityFlag: antiCheat.similarityFlag,
+      similarityFlag: antiCheat.plagiarismScore > 0.5,
       plagiarismScore: antiCheat.plagiarismScore,
       anomalyFlags: JSON.stringify(antiCheat.anomalyFlags),
       isFlagged: antiCheat.isFlagged,
-      flagReason: antiCheat.isFlagged ? antiCheat.action : null,
+      flagReason: antiCheat.flagReason ?? (antiCheat.isFlagged ? antiCheat.action : null),
       status: antiCheat.action === 'disqualify' ? 'disqualified' : 'evaluated',
     },
     include: { expert: { select: { id: true, name: true, avatar: true } } },
@@ -99,13 +93,16 @@ export async function POST(req: NextRequest) {
 
   // Log anti-fraud if flagged
   if (antiCheat.isFlagged) {
+    const severity = antiCheat.riskScore >= 0.85 ? 'critical'
+      : antiCheat.riskScore >= 0.65 ? 'high'
+      : antiCheat.riskScore >= 0.50 ? 'medium' : 'low';
     await prisma.antiFraudLog.create({
       data: {
         submissionId: submission.id,
         expertId: data.expertId,
-        eventType: antiCheat.anomalyFlags[0] ?? 'unknown',
-        severity: antiCheat.riskScore > 0.8 ? 'high' : 'medium',
-        details: JSON.stringify(antiCheat),
+        eventType: antiCheat.anomalyFlags[0] ?? 'fraud_detected',
+        severity,
+        details: JSON.stringify({ ...antiCheat, confidenceReport: antiCheat.confidenceReport }),
         score: antiCheat.riskScore,
         action: antiCheat.action,
       },

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { smartClassify, smartEmbedding } from '@/lib/ai/smartEngine';
 import { routeToExperts } from '@/lib/ai/router';
+import { geminiAnalyze, geminiEmbed } from '@/lib/ai/geminiAnalyzer';
 import { z } from 'zod';
 
 const AnalyzeSchema = z.object({
@@ -20,22 +20,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(err) }, { status: 422 });
   }
 
-  // Classify with smart rule-based engine (zero API calls)
-  const classification = smartClassify(text);
+  // Classify with Gemini 1.5 Pro (falls back to heuristic engine if key not set)
+  const classification = await geminiAnalyze(text);
 
-  // Generate deterministic embedding
-  const embedding = smartEmbedding(text);
+  // Generate embedding (Gemini text-embedding-004 or fallback)
+  const embedding = await geminiEmbed(text);
 
   // Find domain by slug
-  const domain = await prisma.domain.findUnique({ where: { slug: classification.domain } });
+  const domain = await prisma.domain.findUnique({ where: { slug: classification.detectedDomain } });
 
   // Persist analysis
   const analysis = await prisma.aIAnalysis.upsert({
     where: { consultationId },
     update: {
-      detectedDomain: classification.domain,
-      detectedSubDomain: classification.subDomain,
-      detectedTopic: classification.topic,
+      detectedDomain: classification.detectedDomain,
+      detectedSubDomain: classification.detectedSubDomain,
+      detectedTopic: classification.detectedTopic,
       questionType: classification.questionType,
       difficulty: classification.difficulty,
       confidence: classification.confidence,
@@ -44,13 +44,13 @@ export async function POST(req: NextRequest) {
       safetyFlags: JSON.stringify(classification.safetyFlags),
       isSafe: classification.isSafe,
       processingTimeMs: Date.now() - start,
-      modelUsed: 'smart-engine-v1',
+      modelUsed: classification.modelUsed,
     },
     create: {
       consultationId,
-      detectedDomain: classification.domain,
-      detectedSubDomain: classification.subDomain,
-      detectedTopic: classification.topic,
+      detectedDomain: classification.detectedDomain,
+      detectedSubDomain: classification.detectedSubDomain,
+      detectedTopic: classification.detectedTopic,
       questionType: classification.questionType,
       difficulty: classification.difficulty,
       confidence: classification.confidence,
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       safetyFlags: JSON.stringify(classification.safetyFlags),
       isSafe: classification.isSafe,
       processingTimeMs: Date.now() - start,
-      modelUsed: 'smart-engine-v1',
+      modelUsed: classification.modelUsed,
     },
   });
 
@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
             expertId: r.expertId,
             type: 'targeted',
             title: 'New question matches your expertise',
-            body: `"${consultation.title}" — domain: ${classification.domain}`,
+            body: `"${consultation.title}" — domain: ${classification.detectedDomain}`,
             consultationId,
           })),
           skipDuplicates: true,
