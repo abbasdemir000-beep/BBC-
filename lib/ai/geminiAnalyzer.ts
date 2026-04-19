@@ -23,15 +23,22 @@ export interface GeminiClassifyResult {
 
 export async function geminiAnalyze(text: string): Promise<GeminiClassifyResult> {
   if (!isGeminiEnabled()) {
-    // Graceful fallback to heuristic engine
     const fallback = smartClassify(text);
     return {
-      ...fallback,
+      detectedDomain: fallback.domain,
+      detectedSubDomain: fallback.subDomain,
+      detectedTopic: fallback.topic,
+      questionType: fallback.questionType,
+      difficulty: fallback.difficulty,
+      confidence: fallback.confidence,
+      reasoning: fallback.reasoning,
+      safetyFlags: fallback.safetyFlags,
+      isSafe: fallback.isSafe,
       priorityLevel: 2,
       keywords: [],
       language: 'en',
       modelUsed: 'smart-engine-fallback',
-    } as GeminiClassifyResult;
+    };
   }
 
   const model = getAnalysisModel();
@@ -91,12 +98,20 @@ Return only the JSON object, no extra text.
     console.error('[geminiAnalyze] parse error, falling back:', err);
     const fallback = smartClassify(text);
     return {
-      ...fallback,
+      detectedDomain: fallback.domain,
+      detectedSubDomain: fallback.subDomain,
+      detectedTopic: fallback.topic,
+      questionType: fallback.questionType,
+      difficulty: fallback.difficulty,
+      confidence: fallback.confidence,
+      reasoning: fallback.reasoning,
+      safetyFlags: fallback.safetyFlags,
+      isSafe: fallback.isSafe,
       priorityLevel: 2,
       keywords: [],
       language: 'en',
       modelUsed: 'smart-engine-fallback',
-    } as GeminiClassifyResult;
+    };
   }
 }
 

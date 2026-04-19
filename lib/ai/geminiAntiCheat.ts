@@ -26,14 +26,14 @@ export async function geminiAntiCheat(
 ): Promise<GeminiAntiCheatResult> {
 
   if (!isGeminiEnabled()) {
-    const fallback = runAntiCheat(submission, 0);
+    const fallback = await runAntiCheat(submission, expertId, [], 0);
     return {
       aiGeneratedProb: fallback.aiGeneratedProb,
       plagiarismScore: fallback.plagiarismScore,
       relevanceScore: 0.8,
       riskScore: fallback.riskScore,
       isFlagged: fallback.isFlagged,
-      flagReason: fallback.flagReason ?? null,
+      flagReason: fallback.isFlagged ? fallback.action : null,
       status: fallback.isFlagged ? 'FLAGGED' : 'CLEAN',
       action: fallback.action,
       anomalyFlags: fallback.anomalyFlags,
@@ -121,14 +121,14 @@ Return only the JSON object.
     };
   } catch (err) {
     console.error('[geminiAntiCheat] error, falling back:', err);
-    const fallback = runAntiCheat(submission, 0);
+    const fallback = await runAntiCheat(submission, expertId, [], 0);
     return {
       aiGeneratedProb: fallback.aiGeneratedProb,
       plagiarismScore: fallback.plagiarismScore,
       relevanceScore: 0.8,
       riskScore: fallback.riskScore,
       isFlagged: fallback.isFlagged,
-      flagReason: fallback.flagReason ?? null,
+      flagReason: fallback.isFlagged ? fallback.action : null,
       status: fallback.isFlagged ? 'FLAGGED' : 'CLEAN',
       action: fallback.action,
       anomalyFlags: fallback.anomalyFlags,

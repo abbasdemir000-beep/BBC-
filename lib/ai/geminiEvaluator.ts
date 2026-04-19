@@ -29,7 +29,7 @@ export async function geminiEvaluate(
 ): Promise<GeminiEvalResult> {
 
   if (!isGeminiEnabled()) {
-    const fallback = smartEvaluate(submission, domain);
+    const fallback = smartEvaluate(consultationText, submission, domain);
     return {
       accuracyScore: fallback.accuracyScore,
       reasoningScore: fallback.reasoningScore,
@@ -113,7 +113,7 @@ Return only the JSON object.
     };
   } catch (err) {
     console.error('[geminiEvaluate] error, falling back:', err);
-    const fallback = smartEvaluate(submission, domain);
+    const fallback = smartEvaluate(consultationText, submission, domain);
     return {
       accuracyScore: fallback.accuracyScore,
       reasoningScore: fallback.reasoningScore,
