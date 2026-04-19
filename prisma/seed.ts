@@ -206,61 +206,72 @@ const DOMAINS = [
   },
 ];
 
-const EXPERTS = [
-  { name: 'Dr. Sarah Chen', email: 'sarah.chen@example.com', bio: 'Cardiologist with 15 years of clinical experience.', domain: 'medicine', yearsExperience: 15, hourlyRate: 150, rating: 4.9, totalReviews: 234 },
-  { name: 'Prof. James Wright', email: 'james.wright@example.com', bio: 'Professor of Structural Engineering at MIT.', domain: 'engineering', yearsExperience: 20, hourlyRate: 120, rating: 4.8, totalReviews: 189 },
-  { name: 'Dr. Maria Santos', email: 'maria.santos@example.com', bio: 'Applied mathematician specializing in numerical analysis.', domain: 'mathematics', yearsExperience: 12, hourlyRate: 100, rating: 4.7, totalReviews: 156 },
-  { name: 'Dr. Amir Khalil', email: 'amir.khalil@example.com', bio: 'Quantum physicist, former CERN researcher.', domain: 'physics', yearsExperience: 18, hourlyRate: 130, rating: 4.9, totalReviews: 201 },
-  { name: 'Alex Kim', email: 'alex.kim@example.com', bio: 'Senior ML Engineer at Google Brain.', domain: 'computer-science', yearsExperience: 10, hourlyRate: 180, rating: 4.8, totalReviews: 312 },
-  { name: 'Jennifer Lee', email: 'jennifer.lee@example.com', bio: 'Corporate attorney with IP law specialization.', domain: 'law', yearsExperience: 14, hourlyRate: 200, rating: 4.7, totalReviews: 145 },
-  { name: 'Michael Torres', email: 'michael.torres@example.com', bio: 'CFO of two successful startups, finance expert.', domain: 'business', yearsExperience: 16, hourlyRate: 160, rating: 4.6, totalReviews: 178 },
-  { name: 'Dr. Priya Sharma', email: 'priya.sharma@example.com', bio: 'Organic chemistry researcher and professor.', domain: 'chemistry', yearsExperience: 11, hourlyRate: 110, rating: 4.8, totalReviews: 167 },
-  { name: 'Dr. Robert Anderson', email: 'robert.anderson@example.com', bio: 'Molecular biologist specializing in gene editing.', domain: 'biology', yearsExperience: 13, hourlyRate: 125, rating: 4.7, totalReviews: 143 },
-  { name: 'Dr. Emma Wilson', email: 'emma.wilson@example.com', bio: 'Educational psychologist and curriculum designer.', domain: 'education', yearsExperience: 9, hourlyRate: 90, rating: 4.6, totalReviews: 98 },
-  { name: 'Dr. Carlos Mendez', email: 'carlos.mendez@example.com', bio: 'Clinical psychologist with CBT expertise.', domain: 'psychology', yearsExperience: 12, hourlyRate: 120, rating: 4.8, totalReviews: 187 },
-  { name: 'Sophia Laurent', email: 'sophia.laurent@example.com', bio: 'Award-winning architect and urban planner.', domain: 'architecture', yearsExperience: 15, hourlyRate: 140, rating: 4.7, totalReviews: 134 },
-  { name: 'Dr. John Park', email: 'john.park@example.com', bio: 'Macroeconomist, former IMF advisor.', domain: 'economics', yearsExperience: 20, hourlyRate: 175, rating: 4.9, totalReviews: 223 },
-  { name: 'Lisa Thompson', email: 'lisa.thompson@example.com', bio: 'Registered dietitian and sports nutritionist.', domain: 'nutrition', yearsExperience: 8, hourlyRate: 85, rating: 4.6, totalReviews: 112 },
-  { name: 'Coach David Brown', email: 'david.brown@example.com', bio: 'Exercise physiologist, Olympic training specialist.', domain: 'sports', yearsExperience: 17, hourlyRate: 110, rating: 4.8, totalReviews: 198 },
-  { name: 'Dr. Anna Green', email: 'anna.green@example.com', bio: 'Climate scientist and environmental policy expert.', domain: 'environmental', yearsExperience: 14, hourlyRate: 130, rating: 4.7, totalReviews: 156 },
-  { name: 'Prof. Thomas Müller', email: 'thomas.muller@example.com', bio: 'Professor of Ethics, specializing in AI ethics.', domain: 'philosophy', yearsExperience: 22, hourlyRate: 115, rating: 4.8, totalReviews: 189 },
-  { name: 'Dr. Rachel Cohen', email: 'rachel.cohen@example.com', bio: 'Historian focusing on 20th century European history.', domain: 'history', yearsExperience: 16, hourlyRate: 95, rating: 4.7, totalReviews: 134 },
-  { name: 'Isabella Rossi', email: 'isabella.rossi@example.com', bio: 'Art historian and contemporary art critic.', domain: 'arts', yearsExperience: 12, hourlyRate: 100, rating: 4.6, totalReviews: 123 },
-  { name: 'Dr. Wei Zhang', email: 'wei.zhang@example.com', bio: 'Computational linguist, NLP researcher.', domain: 'linguistics', yearsExperience: 10, hourlyRate: 120, rating: 4.7, totalReviews: 145 },
-];
+const EXPERTS = [];
 
-const CONSULTATIONS = [
-  { title: 'Interpreting ECG results for arrhythmia detection', description: 'I have a patient with irregular heartbeat. The ECG shows some unusual patterns. Can you help interpret the findings and suggest next steps for diagnosis?', domain: 'medicine', questionType: 'diagnosis', difficulty: 'advanced', urgency: 'high' },
-  { title: 'Optimal concrete mix design for high-rise foundation', description: 'Working on a 50-story building in seismic zone. Need guidance on concrete mix design for the pile foundation considering both strength and durability requirements.', domain: 'engineering', questionType: 'problem_solving', difficulty: 'expert', urgency: 'normal' },
-  { title: 'Proof of Riemann Hypothesis approaches', description: 'Looking for a comprehensive explanation of the current leading approaches to proving the Riemann Hypothesis. What is the state of research?', domain: 'mathematics', questionType: 'explanation', difficulty: 'expert', urgency: 'low' },
-  { title: 'Quantum entanglement in quantum computing', description: 'How does quantum entanglement enable quantum speedup? Please explain the mechanism with concrete examples from Shor\'s algorithm.', domain: 'physics', questionType: 'explanation', difficulty: 'advanced', urgency: 'normal' },
-  { title: 'Implementing transformer attention mechanism from scratch', description: 'I need to implement multi-head self-attention in PyTorch without using nn.MultiheadAttention. Can you walk through the math and implementation?', domain: 'computer-science', questionType: 'problem_solving', difficulty: 'advanced', urgency: 'normal' },
-  { title: 'Non-compete clause enforceability in California', description: 'Our startup wants employees to sign non-compete agreements. We operate remotely with employees in California. What is the legal landscape and risks?', domain: 'law', questionType: 'advice', difficulty: 'intermediate', urgency: 'high' },
-  { title: 'Series A valuation methodology for SaaS startup', description: 'We are preparing for Series A. ARR is $2M, growing 15% MoM. What valuation methodology should we use and what multiples are typical?', domain: 'business', questionType: 'advice', difficulty: 'advanced', urgency: 'high' },
-  { title: 'Grignard reaction mechanism and selectivity', description: 'Explain the detailed mechanism of Grignard reactions including factors that affect chemoselectivity when multiple electrophilic sites are present.', domain: 'chemistry', questionType: 'explanation', difficulty: 'advanced', urgency: 'normal' },
-  { title: 'CRISPR off-target effects and mitigation strategies', description: 'What are the known off-target effects of CRISPR-Cas9 and what are the current strategies to minimize them in therapeutic applications?', domain: 'biology', questionType: 'explanation', difficulty: 'expert', urgency: 'normal' },
-  { title: 'Designing adaptive learning for neurodivergent students', description: 'I teach a class with several students with ADHD and dyslexia. What evidence-based pedagogical strategies can I use to make my curriculum more inclusive?', domain: 'education', questionType: 'advice', difficulty: 'intermediate', urgency: 'normal' },
-];
+const CONSULTATIONS = [];
 
 async function main() {
   console.log('🌱 Seeding database...');
 
-  // Create demo users with passwords (bcrypt hash of 'demo1234')
+  // ── Remove all fake/demo accounts ──────────────────────────────────────────
+  const fakeEmails = [
+    'sarah.chen@example.com', 'james.wright@example.com', 'maria.santos@example.com',
+    'amir.khalil@example.com', 'alex.kim@example.com', 'jennifer.lee@example.com',
+    'michael.torres@example.com', 'priya.sharma@example.com', 'robert.anderson@example.com',
+    'emma.wilson@example.com', 'carlos.mendez@example.com', 'sophia.laurent@example.com',
+    'john.park@example.com', 'lisa.thompson@example.com', 'david.brown@example.com',
+    'anna.green@example.com', 'thomas.muller@example.com', 'rachel.cohen@example.com',
+    'isabella.rossi@example.com', 'wei.zhang@example.com',
+  ];
+
+  // Delete fake experts and their related data
+  for (const email of fakeEmails) {
+    const expert = await prisma.expert.findUnique({ where: { email } });
+    if (expert) {
+      await prisma.antiFraudLog.deleteMany({ where: { expertId: expert.id } });
+      await prisma.notification.deleteMany({ where: { expertId: expert.id } });
+      await prisma.examResult.deleteMany({ where: { expertId: expert.id } });
+      await prisma.expertRouting.deleteMany({ where: { expertId: expert.id } });
+      await prisma.review.deleteMany({ where: { expertId: expert.id } });
+      await prisma.reward.deleteMany({ where: { expertId: expert.id } });
+      await prisma.chatRoom.deleteMany({ where: { expertId: expert.id } });
+      await prisma.submission.deleteMany({ where: { expertId: expert.id } });
+      await prisma.credential.deleteMany({ where: { expertId: expert.id } });
+      await prisma.expert.delete({ where: { email } });
+      console.log(`🗑️  Deleted fake expert: ${email}`);
+    }
+  }
+
+  // Delete demo user and their consultations
+  const demoUser = await prisma.user.findUnique({ where: { email: 'demo@marketplace.com' } });
+  if (demoUser) {
+    const consultations = await prisma.consultation.findMany({ where: { userId: demoUser.id } });
+    for (const c of consultations) {
+      await prisma.expertRouting.deleteMany({ where: { consultationId: c.id } });
+      await prisma.aIAnalysis.deleteMany({ where: { consultationId: c.id } });
+      await prisma.review.deleteMany({ where: { consultationId: c.id } });
+      await prisma.escrow.deleteMany({ where: { consultationId: c.id } });
+      await prisma.chatRoom.deleteMany({ where: { consultationId: c.id } });
+      const subs = await prisma.submission.findMany({ where: { consultationId: c.id } });
+      for (const s of subs) {
+        await prisma.examResult.deleteMany({ where: { submissionId: s.id } });
+        await prisma.antiFraudLog.deleteMany({ where: { submissionId: s.id } });
+        await prisma.validation.deleteMany({ where: { submissionId: s.id } });
+      }
+      await prisma.submission.deleteMany({ where: { consultationId: c.id } });
+      await prisma.consultation.delete({ where: { id: c.id } });
+    }
+    await prisma.reward.deleteMany({ where: { userId: demoUser.id } });
+    await prisma.notification.deleteMany({ where: { userId: demoUser.id } });
+    await prisma.user.delete({ where: { email: 'demo@marketplace.com' } });
+    console.log('🗑️  Deleted demo user: demo@marketplace.com');
+  }
+
+  console.log('✅ Fake accounts removed.\n');
+
+  // ── Admin account ───────────────────────────────────────────────────────────
   const { hash } = await import('bcryptjs');
   const demoHash = await hash('demo1234', 12);
-
-  const user = await prisma.user.upsert({
-    where: { email: 'demo@marketplace.com' },
-    update: { passwordHash: demoHash },
-    create: {
-      email: 'demo@marketplace.com',
-      name: 'Demo User',
-      role: 'user',
-      reputation: 150,
-      passwordHash: demoHash,
-    },
-  });
-  console.log(`✓ User: ${user.name} (email: demo@marketplace.com, password: demo1234)`);
 
   // Admin user
   await prisma.user.upsert({
@@ -326,74 +337,8 @@ async function main() {
     }
   }
 
-  // Create experts
-  const expertIds: string[] = [];
-  for (const e of EXPERTS) {
-    const domainId = domainMap[e.domain];
-    const expert = await prisma.expert.upsert({
-      where: { email: e.email },
-      update: {},
-      create: {
-        name: e.name,
-        email: e.email,
-        bio: e.bio,
-        yearsExperience: e.yearsExperience,
-        hourlyRate: e.hourlyRate,
-        rating: e.rating,
-        totalReviews: e.totalReviews,
-        isVerified: true,
-        isAvailable: true,
-        domainId: domainId || null,
-        embeddingVector: JSON.stringify(Array.from({ length: 64 }, () => Math.random() * 2 - 1)),
-      },
-    });
-    expertIds.push(expert.id);
-
-    // Update domain expert count
-    if (domainId) {
-      await prisma.domain.update({
-        where: { id: domainId },
-        data: { expertCount: { increment: 1 } },
-      });
-    }
-    console.log(`  ✓ Expert: ${e.name}`);
-  }
-
-  // Create consultations
-  for (let i = 0; i < CONSULTATIONS.length; i++) {
-    const c = CONSULTATIONS[i];
-    const domainId = domainMap[c.domain];
-    await prisma.consultation.create({
-      data: {
-        title: c.title,
-        description: c.description,
-        status: i < 3 ? 'active' : i < 6 ? 'completed' : 'pending',
-        questionType: c.questionType,
-        difficulty: c.difficulty,
-        urgency: c.urgency,
-        prizePoints: 100 + i * 25,
-        userId: user.id,
-        domainId: domainId || null,
-      },
-    });
-    console.log(`  ✓ Consultation: ${c.title.slice(0, 50)}...`);
-  }
-
-  // Create sample rewards
-  await prisma.reward.create({
-    data: {
-      userId: user.id,
-      type: 'daily_bonus',
-      points: 50,
-      status: 'available',
-      description: 'Daily login bonus',
-    },
-  });
-
   console.log('\n✅ Seed complete!');
   console.log(`   Domains: ${DOMAINS.length}`);
-  console.log(`   Experts: ${EXPERTS.length}`);
-  console.log(`   Consultations: ${CONSULTATIONS.length}`);
 }
 
 main()
