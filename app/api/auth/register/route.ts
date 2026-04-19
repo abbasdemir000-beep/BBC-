@@ -23,7 +23,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   let data: z.infer<typeof Schema>;
   try { data = Schema.parse(body); }
-  catch (e) { return NextResponse.json({ error: String(e) }, { status: 422 }); }
+  catch (e) {
+    const msg = e instanceof z.ZodError ? e.issues.map(i => i.message).join('; ') : 'Invalid request';
+    return NextResponse.json({ error: msg }, { status: 422 });
+  }
 
   const exists = await prisma.user.findUnique({ where: { email: data.email } });
   if (exists) return NextResponse.json({ error: 'Email already registered' }, { status: 409 });

@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
   try {
     ({ consultationId, text } = AnalyzeSchema.parse(body));
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 422 });
+    const msg = err instanceof z.ZodError ? err.issues.map(i => i.message).join('; ') : 'Invalid request';
+    return NextResponse.json({ error: msg }, { status: 422 });
   }
 
   // Classify with smart rule-based engine (zero API calls)

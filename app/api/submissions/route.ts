@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
   try {
     data = SubmitSchema.parse(body);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 422 });
+    const msg = err instanceof z.ZodError ? err.issues.map(i => i.message).join('; ') : 'Invalid request';
+    return NextResponse.json({ error: msg }, { status: 422 });
   }
 
   const consultation = await prisma.consultation.findUnique({

@@ -14,8 +14,8 @@ const CreateSchema = z.object({
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('limit') || '10');
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
+  const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '10') || 10));
   const status = searchParams.get('status');
   const domain = searchParams.get('domain');
   const userId = searchParams.get('userId');
@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
   try {
     data = CreateSchema.parse(body);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 422 });
+    const msg = err instanceof z.ZodError ? err.issues.map(i => i.message).join('; ') : 'Invalid request';
+    return NextResponse.json({ error: msg }, { status: 422 });
   }
 
   const userId = session.id;

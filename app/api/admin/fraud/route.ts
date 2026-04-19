@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const resolved = searchParams.get('resolved');
-    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1') || 1);
     const skip = (page - 1) * PAGE_SIZE;
 
     const where: Record<string, unknown> = {};

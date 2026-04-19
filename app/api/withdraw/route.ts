@@ -63,25 +63,48 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── Check user reputation balance ────────────────────────────────────────
-    const user = await prisma.user.findUnique({
-      where: { id: session.id },
-      select: { id: true, name: true, reputation: true },
+    // ── Check available reward points balance ────────────────────────────────
+    const balanceResult = await prisma.reward.aggregate({
+      where: {
+        status: 'available',
+        OR: [
+          { userId: session.id },
+          ...(session.expertId ? [{ expertId: session.expertId }] : []),
+        ],
+      },
+      _sum: { points: true },
     });
+    const available = balanceResult._sum.points ?? 0;
 
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    if (user.reputation < amount) {
+    if (available < amount) {
       return NextResponse.json(
-        {
-          error: 'Insufficient reputation points',
-          available: user.reputation,
-          requested: amount,
-        },
+        { error: 'Insufficient points', available, requested: amount },
         { status: 422 }
       );
+    }
+
+    // Deduct by marking oldest available rewards as claimed
+    const rewardsList = await prisma.reward.findMany({
+      where: {
+        status: 'available',
+        OR: [
+          { userId: session.id },
+          ...(session.expertId ? [{ expertId: session.expertId }] : []),
+        ],
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    let remaining = amount;
+    for (const reward of rewardsList) {
+      if (remaining <= 0) break;
+      if (reward.points <= remaining) {
+        await prisma.reward.update({ where: { id: reward.id }, data: { status: 'claimed', claimedAt: new Date() } });
+        remaining -= reward.points;
+      } else {
+        await prisma.reward.update({ where: { id: reward.id }, data: { points: reward.points - remaining } });
+        remaining = 0;
+      }
     }
 
     // ── Create confirmation notification ────────────────────────────────────

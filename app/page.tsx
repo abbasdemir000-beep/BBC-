@@ -127,7 +127,7 @@ export default function Home() {
   const visible = NAV.filter(n =>
     (!n.expertOnly || isExpert) &&
     (!n.authOnly   || !!user) &&
-    (!n.adminOnly  || isAdmin || user?.role === 'admin')
+    (!n.adminOnly  || isAdmin)
   ).map(n => n.id);
 
   function navigate(id: Tab) { setTab(id); setSidebarOpen(false); }

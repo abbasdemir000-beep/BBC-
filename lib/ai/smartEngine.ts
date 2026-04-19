@@ -134,7 +134,7 @@ export function smartClassify(text: string): SmartClassification {
   const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
   const topDomain = sorted[0][0];
   const topScore = sorted[0][1];
-  const confidence = Math.min(0.98, 0.5 + topScore * 0.08);
+  const confidence = Math.min(0.98, topScore > 0 ? topScore * 0.15 : 0);
 
   // Detect question type (English + Arabic + Kurdish patterns)
   let questionType: SmartClassification['questionType'] = 'explanation';

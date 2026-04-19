@@ -83,11 +83,11 @@ export async function GET(
       examResultsCount: expert.examResults.length,
     };
 
-    // Strip the heavy examResults array from the response (count is in stats)
-    const { examResults, ...expertWithoutExamResults } = expert;
-    void examResults; // consumed above
+    // Strip sensitive and heavy fields from the public response
+    const { examResults, passwordHash, embeddingVector, styleFingerprint, email, ...publicExpert } = expert as typeof expert & { passwordHash?: string; embeddingVector?: string; styleFingerprint?: string; email?: string };
+    void examResults; void passwordHash; void embeddingVector; void styleFingerprint; void email;
 
-    return NextResponse.json({ ...expertWithoutExamResults, stats });
+    return NextResponse.json({ ...publicExpert, stats });
   } catch (error) {
     console.error('[GET /api/experts/[id]]', error);
     return NextResponse.json(
