@@ -4,9 +4,11 @@ import { getSessionFromRequest } from '@/lib/auth';
 
 const PAGE_SIZE = 20;
 
+const ADMIN_EMAIL = 'abbasdemir000@gmail.com';
+
 async function requireAdmin(req: NextRequest) {
   const session = await getSessionFromRequest(req);
-  if (!session) return null;
+  if (!session || session.email !== ADMIN_EMAIL) return null;
   return session;
 }
 

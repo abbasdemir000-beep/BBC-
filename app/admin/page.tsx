@@ -681,10 +681,12 @@ export default function AdminPage() {
     );
   }
 
-  if (!user) {
+  if (!user || user.email !== 'abbasdemir000@gmail.com') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: 'var(--bg)' }}>
+        <div className="text-4xl mb-2">🔒</div>
         <p className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Access Denied</p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>This page is restricted to authorized administrators only.</p>
         <Link href="/" className="text-sm underline" style={{ color: 'var(--accent)' }}>← Back to App</Link>
       </div>
     );

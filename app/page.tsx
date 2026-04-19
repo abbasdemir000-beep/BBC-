@@ -94,7 +94,7 @@ export default function Home() {
   const { theme, toggle: toggleTheme } = useTheme();
 
   const isExpert = user?.role === 'expert';
-  const isAdmin  = user?.role === 'admin';
+  const isAdmin  = user?.email === 'abbasdemir000@gmail.com';
 
   const NAV: { id: Tab; expertOnly?: boolean; authOnly?: boolean; adminOnly?: boolean }[] = [
     { id: 'dashboard'        },
