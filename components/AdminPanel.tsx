@@ -45,9 +45,17 @@ export default function AdminPanel() {
 
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Admin Panel</h1>
-        <p className="text-slate-500 text-sm mt-1">Platform overview and moderation</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Admin Panel</h1>
+          <p className="text-slate-500 text-sm mt-1">Platform overview and moderation</p>
+        </div>
+        <a
+          href="/admin"
+          style={{ background: 'var(--accent)', color: '#fff', textDecoration: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 600, fontSize: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+        >
+          Open Full Admin Panel →
+        </a>
       </div>
 
       {/* Stats */}
