@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionFromRequest } from '@/lib/auth';
+import { checkAdminCookie } from '@/lib/admin-auth';
 
 const PAGE_SIZE = 20;
 
 async function requireAdmin(req: NextRequest) {
+  if (checkAdminCookie(req)) return { role: 'admin' };
   const session = await getSessionFromRequest(req);
   if (!session) return null;
   return session;
