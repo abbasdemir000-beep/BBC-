@@ -6,7 +6,7 @@ interface Stats {
   totalUsers: number; totalExperts: number; totalConsultations: number; totalSubmissions: number;
   pendingVerifications: Array<{ id: string; name: string; email: string; domain?: { name: string }; createdAt: string }>;
   recentFlags: Array<{ id: string; eventType: string; severity: string; score: number; expertId: string; createdAt: string }>;
-  domainStats: Array<{ id: string; name: string; icon: string; expertCount: number; _count: { consultations: number } }>;
+  domainStats: Array<{ id: string; name: string; icon: string; expertCount: number; consultationCount: number }>;
 }
 
 export default function AdminPanel() {
@@ -139,7 +139,7 @@ export default function AdminPanel() {
               <div className="text-2xl mb-1">{d.icon}</div>
               <div className="text-xs font-semibold text-slate-700 truncate">{d.name}</div>
               <div className="text-xs text-slate-500 mt-1">{d.expertCount} experts</div>
-              <div className="text-xs text-slate-500">{d._count.consultations} questions</div>
+              <div className="text-xs text-slate-500">{d.consultationCount} questions</div>
             </div>
           ))}
         </div>
