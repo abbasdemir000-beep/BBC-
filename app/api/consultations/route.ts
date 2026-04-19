@@ -9,6 +9,7 @@ const CreateSchema = z.object({
   urgency: z.enum(['low', 'normal', 'high', 'critical']).default('normal'),
   isPublic: z.boolean().default(true),
   userId: z.string().optional(),
+  language: z.string().default('en'),
 });
 
 export async function GET(req: NextRequest) {
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
       imageUrl: data.imageUrl,
       urgency: data.urgency,
       isPublic: data.isPublic,
+      language: data.language,
       status: 'pending',
       userId,
     },

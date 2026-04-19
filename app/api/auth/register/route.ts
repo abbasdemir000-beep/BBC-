@@ -9,10 +9,13 @@ const Schema = z.object({
   email:    z.string().email(),
   password: z.string().min(6),
   role:     z.enum(['user', 'expert']).default('user'),
+  appLanguage: z.enum(['en', 'ar', 'ku']).default('en'),
   // Expert-only fields
   bio:            z.string().optional(),
   domainSlug:     z.string().optional(),
   yearsExperience:z.number().min(0).max(60).optional(),
+  examLanguage:   z.enum(['en', 'ar', 'ku']).default('en'),
+  textLanguages:  z.array(z.enum(['en', 'ar', 'ku'])).default(['en']),
 });
 
 export async function POST(req: NextRequest) {
@@ -33,6 +36,7 @@ export async function POST(req: NextRequest) {
       passwordHash,
       role: data.role,
       bio: data.bio,
+      appLanguage: data.appLanguage,
     },
   });
 
@@ -53,6 +57,8 @@ export async function POST(req: NextRequest) {
         domainId: domain?.id ?? null,
         isAvailable: true,
         isVerified: false,
+        examLanguage: data.examLanguage,
+        textLanguages: JSON.stringify(data.textLanguages),
         embeddingVector: JSON.stringify(
           Array.from({ length: 64 }, () => Math.random() * 2 - 1)
         ),
@@ -65,6 +71,7 @@ export async function POST(req: NextRequest) {
     id: user.id, email: user.email, name: user.name,
     role: user.role as 'user' | 'expert',
     expertId,
+    appLanguage: data.appLanguage,
   });
 
   const res = NextResponse.json({

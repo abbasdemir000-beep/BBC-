@@ -8,6 +8,15 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Expert access required' }, { status: 403 });
   }
 
+  // Fetch expert's textLanguages to filter consultations by language
+  const expertRecord = await prisma.expert.findUnique({
+    where: { id: session.expertId },
+    select: { textLanguages: true },
+  });
+  const textLanguages: string[] = expertRecord?.textLanguages
+    ? (JSON.parse(expertRecord.textLanguages) as string[])
+    : ['en'];
+
   // Get all consultations routed to this expert
   const routings = await prisma.expertRouting.findMany({
     where: { expertId: session.expertId },
@@ -28,17 +37,19 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: 'desc' },
   });
 
-  const targeted = routings.map(r => ({
-    routingId: r.id,
-    similarityScore: r.similarityScore,
-    rank: r.rankPosition,
-    accepted: r.accepted,
-    consultation: {
-      ...r.consultation,
-      user: { id: r.consultation.user.id, name: 'Anonymous', avatar: null },
-    },
-    mySubmission: r.consultation.submissions[0] ?? null,
-  }));
+  const targeted = routings
+    .filter(r => textLanguages.includes(r.consultation.language ?? 'en'))
+    .map(r => ({
+      routingId: r.id,
+      similarityScore: r.similarityScore,
+      rank: r.rankPosition,
+      accepted: r.accepted,
+      consultation: {
+        ...r.consultation,
+        user: { id: r.consultation.user.id, name: 'Anonymous', avatar: null },
+      },
+      mySubmission: r.consultation.submissions[0] ?? null,
+    }));
 
   return NextResponse.json({ targeted, total: targeted.length });
 }

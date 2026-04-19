@@ -1,5 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { useLang } from '@/lib/i18n/LanguageContext';
+import { type Lang } from '@/lib/i18n/translations';
 
 export interface AuthUser {
   id: string;
@@ -8,6 +10,7 @@ export interface AuthUser {
   role: 'user' | 'expert' | 'admin';
   bio?: string;
   reputation?: number;
+  appLanguage?: string;
 }
 
 export interface AuthExpert {
@@ -37,6 +40,7 @@ const AuthContext = createContext<AuthContextValue>({
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ user: null, expert: null, unreadNotifications: 0, loading: true });
+  const { setLang } = useLang();
 
   const refresh = useCallback(async () => {
     try {
@@ -44,10 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok) { setState(s => ({ ...s, user: null, expert: null, loading: false })); return; }
       const data = await res.json();
       setState({ user: data.user, expert: data.expert, unreadNotifications: data.unreadNotifications ?? 0, loading: false });
+      if (data.user?.appLanguage) {
+        setLang(data.user.appLanguage as Lang);
+      }
     } catch {
       setState(s => ({ ...s, loading: false }));
     }
-  }, []);
+  }, [setLang]);
 
   const logout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' });

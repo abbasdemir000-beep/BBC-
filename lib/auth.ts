@@ -14,6 +14,7 @@ export interface JWTPayload {
   name: string;
   role: 'user' | 'expert' | 'admin';
   expertId?: string;
+  appLanguage?: string;
 }
 
 export async function signToken(payload: JWTPayload): Promise<string> {

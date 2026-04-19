@@ -126,7 +126,7 @@ export default function AskQuestion() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [consultationId, setConsultationId] = useState('');
   const [apiPromise, setApiPromise] = useState<Promise<Analysis> | null>(null);
-  const { t, dir } = useLang();
+  const { t, dir, lang } = useLang();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -135,7 +135,7 @@ export default function AskQuestion() {
     const promise = (async (): Promise<Analysis> => {
       const res = await fetch('/api/consultations', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, urgency }),
+        body: JSON.stringify({ title, description, urgency, language: lang }),
       });
       const resData = await res.json() as { id?: string; error?: string };
       if (!res.ok) throw new Error(resData.error || 'Failed to create consultation');

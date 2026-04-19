@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     id: user.id, email: user.email, name: user.name,
     role: user.role as 'user' | 'expert',
     expertId: expert?.id,
+    appLanguage: user.appLanguage,
   });
 
   const res = NextResponse.json({
