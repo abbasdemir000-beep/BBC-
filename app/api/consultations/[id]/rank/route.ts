@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/auth';
 import { calcFinalScore, pointsToUSD } from '@/lib/utils';
 
-export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const consultation = await prisma.consultation.findUnique({
     where: { id: params.id },
     include: {
@@ -13,6 +17,9 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     },
   });
   if (!consultation) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (session.id !== consultation.userId && session.email !== 'abbasdemir000@gmail.com') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
   if (consultation.submissions.length === 0) {
     return NextResponse.json({ error: 'No valid submissions to rank' }, { status: 400 });
   }

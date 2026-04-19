@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface Reward {
   id: string; type: string; points: number; moneyValue: number;
@@ -20,20 +21,23 @@ export default function RewardPanel() {
   const [showAdModal, setShowAdModal] = useState(false);
   const [pendingClaim, setPendingClaim] = useState<string | null>(null);
   const { t, dir } = useLang();
+  const { expert } = useAuth();
 
   function load() {
-    fetch('/api/rewards?userId=demo')
+    if (!expert?.id) return;
+    fetch(`/api/rewards?expertId=${expert.id}`)
       .then(r => r.json())
       .then(d => { setRewards(d.rewards); setTotalPoints(d.totalPoints); setMoneyValue(d.moneyValue); })
       .finally(() => setLoading(false));
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [expert?.id]);
 
   async function claimReward(rewardId: string, adWatched = false) {
+    if (!expert?.id) return;
     setClaiming(rewardId);
     const res = await fetch('/api/rewards', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expertId: 'demo', rewardId, adWatched }),
+      body: JSON.stringify({ expertId: expert.id, rewardId, adWatched }),
     });
     const data = await res.json() as { requiresAd?: boolean };
     if (data.requiresAd) { setPendingClaim(rewardId); setShowAdModal(true); }

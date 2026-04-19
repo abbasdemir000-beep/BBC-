@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 import { smartEvaluate } from '@/lib/ai/smartEngine';
 import { runAntiCheat } from '@/lib/ai/antiCheat';
@@ -7,7 +8,6 @@ import { calcFinalScore } from '@/lib/utils';
 
 const SubmitSchema = z.object({
   consultationId: z.string(),
-  expertId: z.string(),
   content: z.string().min(20),
   reasoning: z.string().optional(),
   references: z.array(z.string()).default([]),
@@ -31,6 +31,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (session.role !== 'expert' || !session.expertId) {
+    return NextResponse.json({ error: 'Expert account required' }, { status: 403 });
+  }
+  const expertId = session.expertId;
+
   const body = await req.json();
   let data: z.infer<typeof SubmitSchema>;
   try {
@@ -50,7 +57,7 @@ export async function POST(req: NextRequest) {
 
   // Check for duplicate submission
   const existing = await prisma.submission.findUnique({
-    where: { consultationId_expertId: { consultationId: data.consultationId, expertId: data.expertId } },
+    where: { consultationId_expertId: { consultationId: data.consultationId, expertId } },
   });
   if (existing) return NextResponse.json({ error: 'You have already submitted an answer for this consultation' }, { status: 409 });
 
@@ -63,7 +70,7 @@ export async function POST(req: NextRequest) {
   // Anti-cheat (algorithmic, no API needed)
   const antiCheat = await runAntiCheat(
     data.content,
-    data.expertId,
+    expertId,
     previous.map(s => s.content),
     data.timeSpentSeconds
   );
@@ -76,7 +83,7 @@ export async function POST(req: NextRequest) {
   const submission = await prisma.submission.create({
     data: {
       consultationId: data.consultationId,
-      expertId: data.expertId,
+      expertId,
       content: data.content,
       reasoning: data.reasoning,
       references: JSON.stringify(data.references),
@@ -102,7 +109,7 @@ export async function POST(req: NextRequest) {
     await prisma.antiFraudLog.create({
       data: {
         submissionId: submission.id,
-        expertId: data.expertId,
+        expertId,
         eventType: antiCheat.anomalyFlags[0] ?? 'unknown',
         severity: antiCheat.riskScore > 0.8 ? 'high' : 'medium',
         details: JSON.stringify(antiCheat),

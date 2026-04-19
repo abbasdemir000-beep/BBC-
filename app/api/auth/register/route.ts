@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { signToken, cookieOptions } from '@/lib/auth';
+import { smartEmbedding } from '@/lib/ai/smartEngine';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
         examLanguage: data.examLanguage,
         textLanguages: JSON.stringify(data.textLanguages),
         embeddingVector: JSON.stringify(
-          Array.from({ length: 64 }, () => Math.random() * 2 - 1)
+          smartEmbedding(`${data.bio ?? ''} ${domain?.name ?? data.domainSlug ?? ''} ${data.textLanguages.join(' ')}`)
         ),
       },
     });

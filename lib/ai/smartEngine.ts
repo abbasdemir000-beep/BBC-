@@ -205,7 +205,7 @@ export function smartEmbedding(text: string): number[] {
   for (let i = 0; i < 64; i++) {
     const kw = allKeywords[i % allKeywords.length];
     const tf = (lower.split(kw).length - 1) / (lower.split(' ').length || 1);
-    vector[i] = Math.tanh(tf * 10 + Math.sin(i * 0.5) * 0.1);
+    vector[i] = Math.tanh(tf * 10);
   }
   return vector;
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/auth';
 import { smartClassify, smartEmbedding } from '@/lib/ai/smartEngine';
 import { routeToExperts } from '@/lib/ai/router';
 import { z } from 'zod';
@@ -10,6 +11,9 @@ const AnalyzeSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const session = await getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const start = Date.now();
   const body = await req.json();
 

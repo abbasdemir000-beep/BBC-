@@ -53,6 +53,7 @@ model Domain {
   experts     Expert[]
   consultations Consultation[]
   aiAnalyses  AIAnalysis[]
+  tags        Tag[]
 }
 
 model SubDomain {
@@ -68,6 +69,33 @@ model SubDomain {
   consultations Consultation[]
 
   @@unique([domainId, slug])
+}
+
+// Granular skill tags within a domain (experts self-assign; admin/AI approves)
+model Tag {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  slug        String      @unique
+  emoji       String      @default("🏷️")
+  domainId    String
+  isApproved  Boolean     @default(true)  // false = pending admin review
+  createdBy   String?     // expertId if user-proposed, null if seeded
+  usageCount  Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  domain      Domain      @relation(fields: [domainId], references: [id])
+  expertTags  ExpertTag[]
+}
+
+model ExpertTag {
+  expertId  String
+  tagId     String
+  addedAt   DateTime @default(now())
+
+  expert    Expert   @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([expertId, tagId])
 }
 
 model Topic {
@@ -125,6 +153,7 @@ model Expert {
   examResults   ExamResult[]
   notifications Notification[]
   chatRooms     ChatRoom[]
+  expertTags    ExpertTag[]
 }
 
 model Credential {

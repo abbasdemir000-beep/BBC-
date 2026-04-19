@@ -28,7 +28,7 @@ interface Props {
 export default function ExamModal({ consultationId, expertId, submissionId, onDone, onClose }: Props) {
   const [exam, setExam] = useState<Exam | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [timeLeft, setTimeLeft] = useState(25);
+  const [timeLeft, setTimeLeft] = useState(600);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ score: number; feedback: string; chatRoomId?: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,10 +44,11 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
     })
       .then(r => r.json())
       .then(data => {
+        const timeLimitSecs = data.exam.timeLimitSecs ?? 600;
         const questions = JSON.parse(data.exam.questions ?? '[]') as OpenQuestion[];
-        setExam({ id: data.exam.id, timeLimitSecs: 25, questions, topic: data.topic });
+        setExam({ id: data.exam.id, timeLimitSecs, questions, topic: data.topic });
         setLoading(false);
-        setTimeLeft(25);
+        setTimeLeft(timeLimitSecs);
       });
   }, [consultationId]);
 
@@ -78,7 +79,7 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
       const res = await fetch(`/api/exam/${exam.id}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ expertId, submissionId, answers, timeTakenSecs: timeTaken }),
+        body: JSON.stringify({ submissionId, answers, timeTakenSecs: timeTaken }),
       });
       const data = await res.json();
       setResult({ score: data.score, feedback: data.feedback, chatRoomId: data.chatRoomId });
@@ -129,8 +130,9 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
     </Modal>
   );
 
-  const pct = (timeLeft / 25) * 100;
-  const urgentColor = timeLeft <= 8 ? 'from-red-500 to-red-600' : timeLeft <= 15 ? 'from-amber-500 to-amber-600' : 'from-brand-500 to-purple-600';
+  const totalSecs = exam?.timeLimitSecs ?? 600;
+  const pct = (timeLeft / totalSecs) * 100;
+  const urgentColor = timeLeft <= totalSecs * 0.15 ? 'from-red-500 to-red-600' : timeLeft <= totalSecs * 0.4 ? 'from-amber-500 to-amber-600' : 'from-brand-500 to-purple-600';
 
   return (
     <Modal onClose={onClose}>
