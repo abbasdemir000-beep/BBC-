@@ -5,10 +5,12 @@ import { checkAdminCookie } from '@/lib/admin-auth';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+const ADMIN_EMAIL = 'abbasdemir000@gmail.com';
+
 async function requireSession(req: NextRequest) {
   if (checkAdminCookie(req)) return { role: 'admin' };
   const session = await getSessionFromRequest(req);
-  if (!session) return null;
+  if (!session || session.email !== ADMIN_EMAIL) return null;
   return session;
 }
 
@@ -21,13 +23,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Accept admin role, but also allow any logged-in user for demo purposes
-    // (remove the role check below to enforce strict admin-only access)
-    if (session.role !== 'admin') {
-      // Demo mode: allow any authenticated user to view the dashboard
-      // In production, uncomment the line below and remove this comment:
-      // return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     const [
       totalUsers,

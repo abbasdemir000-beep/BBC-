@@ -5,10 +5,12 @@ import { checkAdminCookie } from '@/lib/admin-auth';
 
 const PAGE_SIZE = 20;
 
+const ADMIN_EMAIL = 'abbasdemir000@gmail.com';
+
 async function requireAdmin(req: NextRequest) {
   if (checkAdminCookie(req)) return { role: 'admin' };
   const session = await getSessionFromRequest(req);
-  if (!session) return null;
+  if (!session || session.email !== ADMIN_EMAIL) return null;
   return session;
 }
 
