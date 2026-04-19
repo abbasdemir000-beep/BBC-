@@ -1,0 +1,5 @@
+# Cloudflare Pages redirects configuration
+# This file handles URL redirects and rewrites for Cloudflare Pages
+
+# Redirect all non-file requests to index.html for SPA routing
+/*  /index.html  200
