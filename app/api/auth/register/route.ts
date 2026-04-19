@@ -9,13 +9,13 @@ const Schema = z.object({
   email:    z.string().email(),
   password: z.string().min(6),
   role:     z.enum(['user', 'expert']).default('user'),
-  appLanguage: z.enum(['en', 'ar', 'ku']).default('en'),
+  appLanguage: z.enum(['en', 'ar', 'ku', 'tr']).default('en'),
   // Expert-only fields
   bio:            z.string().optional(),
   domainSlug:     z.string().optional(),
   yearsExperience:z.number().min(0).max(60).optional(),
-  examLanguage:   z.enum(['en', 'ar', 'ku']).default('en'),
-  textLanguages:  z.array(z.enum(['en', 'ar', 'ku'])).default(['en']),
+  examLanguage:   z.enum(['en', 'ar', 'ku', 'tr']).default('en'),
+  textLanguages:  z.array(z.enum(['en', 'ar', 'ku', 'tr'])).default(['en']),
 });
 
 export async function POST(req: NextRequest) {

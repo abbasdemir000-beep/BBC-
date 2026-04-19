@@ -12,12 +12,14 @@ const LANG_OPTIONS: { code: Lang; label: string; native: string; flag: string; d
   { code: 'en', label: 'English',  native: 'English',  flag: '🇬🇧', dir: 'ltr' },
   { code: 'ar', label: 'Arabic',   native: 'العربية', flag: '🇸🇦', dir: 'rtl' },
   { code: 'ku', label: 'Kurdish',  native: 'کوردی',   flag: '🏳️',  dir: 'rtl' },
+  { code: 'tr', label: 'Turkish',  native: 'Türkçe',  flag: '🇹🇷',  dir: 'ltr' },
 ];
 
 const TEXT_LANG_LABELS: Record<string, string> = {
   en: 'Accept English questions',
   ar: 'Accept Arabic questions',
   ku: 'Accept Kurdish questions',
+  tr: 'Accept Turkish questions',
 };
 
 const UI_TEXT: Record<Lang, {
@@ -66,6 +68,19 @@ const UI_TEXT: Record<Lang, {
     textLangs: 'زمانی پرسیارەکان', textLangsSub: 'کام زمانی پرسیار قبوڵ دەکەیت؟',
     submit: 'هەژمار دروستبکە', signing: 'چوونە ژوورەوە…', wait: 'چاوەڕێبکە…',
     appLang: 'زمانی ئەپ', changeLang: 'گۆڕین',
+  },
+  tr: {
+    chooseApp: 'Dilinizi Seçin', chooseAppSub: 'Devam etmek için tercih ettiğiniz dili seçin',
+    continue: 'Devam Et', signIn: 'Giriş Yap', register: 'Kayıt Ol',
+    welcome: 'Tekrar hoş geldiniz!', joinUs: 'Bilgi pazarına katılın',
+    fullName: 'Tam Ad', email: 'E-posta Adresi', password: 'Şifre',
+    accountType: 'Hesap Türü', userDesc: 'Soru sor ve uzman cevapları al',
+    expertDesc: 'Soruları cevapla ve ödüller kazan',
+    domain: 'Uzmanlık Alanı', bio: 'Profesyonel Biyografi',
+    examLang: 'Sınav Dili', examLangSub: 'Yeterlilik sınavınız için kullanılan dil',
+    textLangs: 'Soru Dilleri', textLangsSub: 'Hangi dildeki soruları kabul edeceksiniz?',
+    submit: 'Hesap Oluştur', signing: 'Giriş yapılıyor…', wait: 'Lütfen bekleyin…',
+    appLang: 'Uygulama Dili', changeLang: 'Değiştir',
   },
 };
 
@@ -160,7 +175,7 @@ export default function AuthModal({ onClose }: Props) {
           {/* ── Step 1: Language picker ── */}
           {step === 'language' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {LANG_OPTIONS.map(l => (
                   <button key={l.code} onClick={() => selectAppLang(l.code)}
                     className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 font-semibold"
@@ -234,7 +249,7 @@ export default function AuthModal({ onClose }: Props) {
                       <div>
                         <label className="block text-xs font-semibold mb-0.5" style={{ color: 'var(--text-secondary)' }}>{ui.examLang}</label>
                         <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{ui.examLangSub}</p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {LANG_OPTIONS.map(l => (
                             <button key={l.code} type="button" onClick={() => setForm(f => ({ ...f, examLanguage: l.code }))}
                               className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200"
@@ -252,7 +267,7 @@ export default function AuthModal({ onClose }: Props) {
                       <div>
                         <label className="block text-xs font-semibold mb-0.5" style={{ color: 'var(--text-secondary)' }}>{ui.textLangs}</label>
                         <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{ui.textLangsSub}</p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           {LANG_OPTIONS.map(l => {
                             const selected = form.textLanguages.includes(l.code);
                             return (
