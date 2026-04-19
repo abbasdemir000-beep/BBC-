@@ -63,7 +63,7 @@ export default function NotificationsPanel() {
 
   if (loading) return (
     <div className="p-8 space-y-4 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-20 bg-[var(--surface-2)] rounded-2xl" />)}
     </div>
   );
 
@@ -73,8 +73,8 @@ export default function NotificationsPanel() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
-          <p className="text-slate-500 text-sm mt-1">{notifs.filter(n => !n.isRead).length} unread</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Notifications</h1>
+          <p className="text-[var(--text-muted)] text-sm mt-1">{notifs.filter(n => !n.isRead).length} unread</p>
         </div>
         {notifs.some(n => !n.isRead) && (
           <button
@@ -89,18 +89,18 @@ export default function NotificationsPanel() {
       {/* Chat Rooms */}
       {rooms.length > 0 && (
         <div className="card">
-          <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">💬 Active Chats</h2>
+          <h2 className="font-semibold text-[var(--text-secondary)] mb-4 flex items-center gap-2">💬 Active Chats</h2>
           <div className="space-y-3">
             {rooms.map(room => (
               <div
                 key={room.id}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all cursor-pointer group"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-[var(--surface-2)] transition-all cursor-pointer group"
                 onClick={() => setActiveChat(room.id)}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-slate-800 truncate">{room.consultation.title}</div>
+                  <div className="text-sm font-semibold text-[var(--text-secondary)] truncate">{room.consultation.title}</div>
                   {room.messages[0] && (
-                    <div className="text-xs text-slate-500 truncate mt-0.5">
+                    <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
                       {room.messages[0].senderName}: {room.messages[0].content}
                     </div>
                   )}
@@ -118,7 +118,7 @@ export default function NotificationsPanel() {
 
       {/* Notifications list */}
       {notifs.length === 0 ? (
-        <div className="card text-center py-16 text-slate-400">
+        <div className="card text-center py-16 text-[var(--text-muted)]">
           <div className="text-4xl mb-3">🔔</div>
           <p className="font-medium">No notifications yet</p>
         </div>
@@ -132,11 +132,11 @@ export default function NotificationsPanel() {
               <div className="text-2xl flex-shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? '🔔'}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-slate-800">{n.title}</p>
+                  <p className="text-sm font-semibold text-[var(--text-secondary)]">{n.title}</p>
                   {!n.isRead && <span className="w-2 h-2 rounded-full bg-brand-500 flex-shrink-0 mt-1.5" />}
                 </div>
-                <p className="text-sm text-slate-600 mt-0.5">{n.body}</p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-sm text-[var(--text-secondary)] mt-0.5">{n.body}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
                   {new Date(n.createdAt).toLocaleString()}
                 </p>
               </div>

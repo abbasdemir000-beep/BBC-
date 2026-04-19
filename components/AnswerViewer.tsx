@@ -162,7 +162,7 @@ export default function AnswerViewer({ consultationId, onClose }: Props) {
                     {ratingDone ? (
                       <div className="text-center py-4">
                         <div className="text-3xl mb-1">{'⭐'.repeat(rating)}</div>
-                        <p className="text-sm text-slate-500">Thanks for rating! {rating}/5 stars</p>
+                        <p className="text-sm text-[var(--text-muted)]">Thanks for rating! {rating}/5 stars</p>
                       </div>
                     ) : (
                       <div className="flex gap-2 justify-center">
@@ -170,7 +170,7 @@ export default function AnswerViewer({ consultationId, onClose }: Props) {
                           <button key={star} disabled={submitting}
                             onMouseEnter={() => setHovered(star)} onMouseLeave={() => setHovered(0)}
                             onClick={() => { setRating(star); submitRating(selected.id, star); }}
-                            className={`text-3xl transition-transform hover:scale-110 ${star <= (hovered || rating) ? 'text-amber-400' : 'text-slate-200'}`}>
+                            className={`text-3xl transition-transform hover:scale-110 ${star <= (hovered || rating) ? 'text-amber-400' : 'text-[var(--border)]'}`}>
                             ⭐
                           </button>
                         ))}

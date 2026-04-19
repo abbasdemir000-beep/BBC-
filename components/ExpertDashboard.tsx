@@ -67,7 +67,7 @@ export default function ExpertDashboard() {
 
   if (loading) return (
     <div className="p-8 space-y-4 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-200 rounded-2xl" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-32 bg-[var(--surface-2)] rounded-2xl" />)}
     </div>
   );
 
@@ -97,14 +97,14 @@ export default function ExpertDashboard() {
       )}
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Expert Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Expert Dashboard</h1>
+        <p className="text-[var(--text-muted)] text-sm mt-1">
           Questions matched to your expertise — {expert?.domain?.name}
         </p>
       </div>
 
       {items.length === 0 ? (
-        <div className="card text-center py-16 text-slate-400">
+        <div className="card text-center py-16 text-[var(--text-muted)]">
           <div className="text-4xl mb-3">📭</div>
           <p className="font-medium">No targeted questions yet</p>
           <p className="text-sm mt-1">You'll be notified when questions match your domain</p>
@@ -146,7 +146,7 @@ function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam, onSu
   const canSubmitAnswer = accepted && !mySubmission;
 
   return (
-    <div className="card border border-slate-100 hover:border-brand-200 transition-all">
+    <div className="card border border-[var(--border)] hover:border-brand-200 transition-all">
       <div className="flex items-start gap-4">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
           #{rank}
@@ -154,31 +154,31 @@ function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam, onSu
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <h3 className="font-semibold text-slate-900 leading-snug">{consultation.title}</h3>
-              <p className="text-xs text-slate-500 mt-1 line-clamp-2">{consultation.description}</p>
+              <h3 className="font-semibold text-[var(--text-primary)] leading-snug">{consultation.title}</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-2">{consultation.description}</p>
             </div>
             <div className="flex-shrink-0 text-right">
-              <div className="text-xs text-slate-500">Match score</div>
+              <div className="text-xs text-[var(--text-muted)]">Match score</div>
               <div className="text-lg font-bold text-brand-600">{(similarityScore * 100).toFixed(0)}%</div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-3">
             {consultation.domain && (
-              <span className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
+              <span className="inline-flex items-center gap-1 text-xs bg-[var(--surface-2)] text-[var(--text-secondary)] px-2 py-1 rounded-lg">
                 {consultation.domain.icon} {consultation.domain.name}
               </span>
             )}
             <span className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-lg">{consultation.difficulty}</span>
-            <span className="text-xs text-slate-400">by Anonymous</span>
+            <span className="text-xs text-[var(--text-muted)]">by Anonymous</span>
           </div>
 
           {mySubmission && (
-            <div className="mt-3 p-3 bg-slate-50 rounded-xl flex items-center gap-4 text-sm">
-              <span className="text-slate-600 font-medium">My submission:</span>
+            <div className="mt-3 p-3 bg-[var(--bg)] rounded-xl flex items-center gap-4 text-sm">
+              <span className="text-[var(--text-secondary)] font-medium">My submission:</span>
               <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg">{mySubmission.status}</span>
-              {mySubmission.aiScore != null && <span className="text-xs text-slate-500">AI: {mySubmission.aiScore}</span>}
-              {mySubmission.examScore != null && <span className="text-xs text-slate-500">Exam: {mySubmission.examScore}</span>}
+              {mySubmission.aiScore != null && <span className="text-xs text-[var(--text-muted)]">AI: {mySubmission.aiScore}</span>}
+              {mySubmission.examScore != null && <span className="text-xs text-[var(--text-muted)]">Exam: {mySubmission.examScore}</span>}
               {mySubmission.finalScore != null && <span className="text-xs font-bold text-green-700">Final: {mySubmission.finalScore}</span>}
             </div>
           )}
@@ -196,7 +196,7 @@ function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam, onSu
                 <button
                   onClick={() => onAccept(false)}
                   disabled={processing}
-                  className="px-4 py-2 bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-300 disabled:opacity-60 transition-all"
+                  className="px-4 py-2 bg-[var(--surface-2)] text-[var(--text-secondary)] rounded-xl text-sm font-semibold hover:bg-[var(--surface-2)] disabled:opacity-60 transition-all"
                 >
                   Decline
                 </button>
@@ -204,7 +204,7 @@ function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam, onSu
             ) : accepted ? (
               <span className="text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-xl font-medium">✓ Accepted</span>
             ) : (
-              <span className="text-xs bg-slate-100 text-slate-500 px-3 py-1.5 rounded-xl font-medium">Declined</span>
+              <span className="text-xs bg-[var(--surface-2)] text-[var(--text-muted)] px-3 py-1.5 rounded-xl font-medium">Declined</span>
             )}
 
             {canSubmitAnswer && (

@@ -34,7 +34,7 @@ interface Consultation {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-600',
+  pending: 'bg-[var(--surface-2)] text-[var(--text-secondary)]',
   analyzing: 'bg-blue-100 text-blue-700',
   routing: 'bg-purple-100 text-purple-700',
   active: 'bg-green-100 text-green-700',
@@ -60,7 +60,7 @@ export default function MyQuestions() {
 
   if (!user) return (
     <div className="p-8">
-      <div className="card text-center py-16 text-slate-400">
+      <div className="card text-center py-16 text-[var(--text-muted)]">
         <div className="text-4xl mb-3">🔒</div>
         <p className="font-medium">Sign in to see your questions</p>
       </div>
@@ -69,7 +69,7 @@ export default function MyQuestions() {
 
   if (loading) return (
     <div className="p-8 space-y-4 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-40 bg-slate-200 rounded-2xl" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-40 bg-[var(--surface-2)] rounded-2xl" />)}
     </div>
   );
 
@@ -79,12 +79,12 @@ export default function MyQuestions() {
       {viewingAnswers && <AnswerViewer consultationId={viewingAnswers} onClose={() => setViewingAnswers(null)} />}
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">My Questions</h1>
-        <p className="text-slate-500 text-sm mt-1">{consultations.length} question{consultations.length !== 1 ? 's' : ''} submitted</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">My Questions</h1>
+        <p className="text-[var(--text-muted)] text-sm mt-1">{consultations.length} question{consultations.length !== 1 ? 's' : ''} submitted</p>
       </div>
 
       {consultations.length === 0 ? (
-        <div className="card text-center py-16 text-slate-400">
+        <div className="card text-center py-16 text-[var(--text-muted)]">
           <div className="text-4xl mb-3">❓</div>
           <p className="font-medium">No questions yet</p>
           <p className="text-sm mt-1">Go to "Ask Question" to submit your first question</p>
@@ -111,31 +111,31 @@ function ConsultationCard({ consultation: c, onOpenChat, onViewAnswers }: {
   onViewAnswers: () => void;
 }) {
   return (
-    <div className="card border border-slate-100 hover:border-slate-200 transition-all">
+    <div className="card border border-[var(--border)] hover:border-[var(--border)] transition-all">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-slate-900">{c.title}</h3>
-            <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${STATUS_COLORS[c.status] ?? 'bg-slate-100 text-slate-600'}`}>
+            <h3 className="font-semibold text-[var(--text-primary)]">{c.title}</h3>
+            <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${STATUS_COLORS[c.status] ?? 'bg-[var(--surface-2)] text-[var(--text-secondary)]'}`}>
               {c.status}
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1 line-clamp-2">{c.description}</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1 line-clamp-2">{c.description}</p>
 
           <div className="flex flex-wrap items-center gap-2 mt-2">
             {c.domain && (
-              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
+              <span className="text-xs bg-[var(--surface-2)] text-[var(--text-secondary)] px-2 py-1 rounded-lg">
                 {c.domain.icon} {c.domain.name}
               </span>
             )}
-            <span className="text-xs text-slate-400">{c.difficulty}</span>
-            <span className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleDateString()}</span>
+            <span className="text-xs text-[var(--text-muted)]">{c.difficulty}</span>
+            <span className="text-xs text-[var(--text-muted)]">{new Date(c.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
         <div className="flex-shrink-0 text-right space-y-2">
           <div>
-            <div className="text-2xl font-bold text-slate-700">{c._count.submissions}</div>
-            <div className="text-xs text-slate-400">answers</div>
+            <div className="text-2xl font-bold text-[var(--text-secondary)]">{c._count.submissions}</div>
+            <div className="text-xs text-[var(--text-muted)]">answers</div>
           </div>
           {c._count.submissions > 0 && (
             <button onClick={onViewAnswers}
@@ -149,31 +149,31 @@ function ConsultationCard({ consultation: c, onOpenChat, onViewAnswers }: {
       {/* Submissions */}
       {c.submissions.length > 0 && (
         <div className="mt-4 space-y-2">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Expert Answers</div>
+          <div className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Expert Answers</div>
           {c.submissions.map(sub => {
             const chatRoom = c.chatRooms.find(r => r.expertId === sub.expertId && r.isActive);
             return (
-              <div key={sub.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+              <div key={sub.id} className="flex items-center gap-3 p-3 bg-[var(--bg)] rounded-xl">
                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                   {sub.expert.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-800 truncate">{sub.expert.name}</div>
+                  <div className="text-sm font-medium text-[var(--text-secondary)] truncate">{sub.expert.name}</div>
                   {sub.expert.domain && (
-                    <div className="text-xs text-slate-500">{sub.expert.domain.icon} {sub.expert.domain.name}</div>
+                    <div className="text-xs text-[var(--text-muted)]">{sub.expert.domain.icon} {sub.expert.domain.name}</div>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs flex-shrink-0">
                   {sub.aiScore != null && (
-                    <span className="text-slate-500">AI: <strong>{sub.aiScore}</strong></span>
+                    <span className="text-[var(--text-muted)]">AI: <strong>{sub.aiScore}</strong></span>
                   )}
                   {sub.examScore != null && (
-                    <span className="text-slate-500">Exam: <strong>{sub.examScore}</strong></span>
+                    <span className="text-[var(--text-muted)]">Exam: <strong>{sub.examScore}</strong></span>
                   )}
                   {sub.finalScore != null && (
                     <span className="text-green-700 font-bold">⭐ {sub.finalScore}</span>
                   )}
-                  <span className={`px-2 py-0.5 rounded-lg ${STATUS_COLORS[sub.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                  <span className={`px-2 py-0.5 rounded-lg ${STATUS_COLORS[sub.status] ?? 'bg-[var(--surface-2)] text-[var(--text-secondary)]'}`}>
                     {sub.status}
                   </span>
                 </div>

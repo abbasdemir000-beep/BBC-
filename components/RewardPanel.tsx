@@ -50,13 +50,13 @@ export default function RewardPanel() {
     if (pendingClaim) { await claimReward(pendingClaim, true); setPendingClaim(null); }
   }
 
-  if (loading) return <div className="p-8 animate-pulse"><div className="h-48 bg-slate-200 rounded-2xl" /></div>;
+  if (loading) return <div className="p-8 animate-pulse"><div className="h-48 bg-[var(--surface-2)] rounded-2xl" /></div>;
 
   return (
     <div className="p-8 space-y-6" dir={dir}>
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">{t('rew_title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('rew_subtitle')}</p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t('rew_title')}</h1>
+        <p className="text-[var(--text-muted)] text-sm mt-1">{t('rew_subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -72,8 +72,8 @@ export default function RewardPanel() {
         </div>
         <div className="card">
           <div className="text-4xl mb-2">📊</div>
-          <div className="text-3xl font-bold text-slate-900">{rewards.filter(r => r.status === 'available').length}</div>
-          <div className="text-slate-500 text-sm">{t('rew_claimable')}</div>
+          <div className="text-3xl font-bold text-[var(--text-primary)]">{rewards.filter(r => r.status === 'available').length}</div>
+          <div className="text-[var(--text-muted)] text-sm">{t('rew_claimable')}</div>
         </div>
       </div>
 
@@ -86,24 +86,24 @@ export default function RewardPanel() {
       </div>
 
       <div className="card">
-        <h2 className="font-semibold text-slate-800 mb-4">{t('rew_title')}</h2>
+        <h2 className="font-semibold text-[var(--text-secondary)] mb-4">{t('rew_title')}</h2>
         {rewards.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-[var(--text-muted)]">
             <div className="text-4xl mb-2">🏅</div>
             <p>{t('rew_no_rewards')}</p>
           </div>
         ) : (
           <div className="space-y-3">
             {rewards.map(r => (
-              <div key={r.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
+              <div key={r.id} className="flex items-center gap-4 p-3 bg-[var(--bg)] rounded-xl">
                 <div className="text-2xl">{TYPE_ICONS[r.type] ?? '🎁'}</div>
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-800">{r.description}</div>
-                  <div className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</div>
+                  <div className="text-sm font-medium text-[var(--text-secondary)]">{r.description}</div>
+                  <div className="text-xs text-[var(--text-muted)]">{new Date(r.createdAt).toLocaleDateString()}</div>
                 </div>
                 <div className="text-end">
                   <div className="font-bold text-amber-600">+{r.points} {t('pts')}</div>
-                  <div className="text-xs text-slate-500">${r.moneyValue.toFixed(3)}</div>
+                  <div className="text-xs text-[var(--text-muted)]">${r.moneyValue.toFixed(3)}</div>
                 </div>
                 {r.status === 'available' && (
                   <button onClick={() => claimReward(r.id)} disabled={claiming === r.id}
@@ -120,12 +120,12 @@ export default function RewardPanel() {
 
       {showAdModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center space-y-4">
+          <div className="bg-[var(--surface)] rounded-2xl p-8 max-w-sm w-full mx-4 text-center space-y-4">
             <div className="text-5xl">📺</div>
-            <h3 className="text-xl font-bold text-slate-900">{t('rew_watch_ad')}</h3>
+            <h3 className="text-xl font-bold text-[var(--text-primary)]">{t('rew_watch_ad')}</h3>
             <div className="bg-slate-900 rounded-xl p-4 text-slate-400 text-sm">[Ad Placeholder — 30s]</div>
             <button onClick={watchAd} className="btn-primary w-full py-3">{t('rew_watch_claim')}</button>
-            <button onClick={() => setShowAdModal(false)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+            <button onClick={() => setShowAdModal(false)} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)]">Cancel</button>
           </div>
         </div>
       )}
@@ -162,15 +162,15 @@ function WithdrawalSection({ totalPoints }: { totalPoints: number }) {
 
   return (
     <div className="card space-y-4">
-      <h2 className="font-semibold text-slate-800 flex items-center gap-2">💸 Withdraw Points</h2>
-      <p className="text-sm text-slate-500">Minimum 1,000 points ($1.00). Processing takes 3-5 business days.</p>
+      <h2 className="font-semibold text-[var(--text-secondary)] flex items-center gap-2">💸 Withdraw Points</h2>
+      <p className="text-sm text-[var(--text-muted)]">Minimum 1,000 points ($1.00). Processing takes 3-5 business days.</p>
 
       {success ? (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-green-700 text-sm font-medium">{success}</div>
       ) : (
         <form onSubmit={handleWithdraw} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Amount (points)</label>
+            <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">Amount (points)</label>
             <div className="flex items-center gap-3">
               <input type="range" min={1000} max={Math.max(1000, totalPoints)} step={500}
                 value={amount} onChange={e => setAmount(Number(e.target.value))}
@@ -181,10 +181,10 @@ function WithdrawalSection({ totalPoints }: { totalPoints: number }) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Payment Method</label>
+            <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">Payment Method</label>
             <div className="flex gap-3">
               {(['paypal', 'bank'] as const).map(m => (
-                <label key={m} className={`flex-1 flex items-center justify-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all ${method === m ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                <label key={m} className={`flex-1 flex items-center justify-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all ${method === m ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--border)]'}`}>
                   <input type="radio" name="method" value={m} checked={method === m} onChange={() => setMethod(m)} className="sr-only" />
                   <span>{m === 'paypal' ? '🅿️' : '🏦'}</span>
                   <span className="text-sm font-semibold capitalize">{m === 'paypal' ? 'PayPal' : 'Bank Transfer'}</span>
@@ -194,12 +194,12 @@ function WithdrawalSection({ totalPoints }: { totalPoints: number }) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">
+            <label className="text-xs font-semibold text-[var(--text-secondary)] mb-1.5 block">
               {method === 'paypal' ? 'PayPal Email' : 'IBAN / Account Number'}
             </label>
             <input value={details} onChange={e => setDetails(e.target.value)} required
               placeholder={method === 'paypal' ? 'your@paypal.com' : 'IBAN or account number'}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="w-full border border-[var(--border)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
           </div>
 
           {error && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{error}</div>}
