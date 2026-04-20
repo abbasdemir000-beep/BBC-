@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionFromRequest } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
+import { checkAdminCookie } from '@/lib/admin-auth';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-const ADMIN_EMAIL = 'abbasdemir000@gmail.com';
-
-async function requireSession(req: NextRequest) {
-  const session = await getSessionFromRequest(req);
-  if (!session || session.email !== ADMIN_EMAIL) return null;
-  return session;
+async function requireAdmin(req: NextRequest) {
+  if (checkAdminCookie(req)) return { role: 'admin' as const, id: '', email: '', name: '' };
+  return requireRole(req, 'admin');
 }
 
 // ─── GET — dashboard overview ───────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSession(req);
+    const session = await requireAdmin(req);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -128,7 +124,7 @@ interface VerifyBody {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const session = await requireSession(req);
+    const session = await requireAdmin(req);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

@@ -7,6 +7,9 @@ const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const COOKIE = 'km_token';
 const EXPIRES = 7 * 24 * 60 * 60; // 7 days
 
+// Configurable via env — falls back to seed value so existing deploys keep working
+export const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? 'abbasdemir000@gmail.com';
+
 export interface JWTPayload {
   id: string;
   email: string;
@@ -43,6 +46,34 @@ export async function getSessionFromRequest(req: NextRequest): Promise<JWTPayloa
   const token = req.cookies.get(COOKIE)?.value;
   if (!token) return null;
   return verifyToken(token);
+}
+
+/** True when the session belongs to the platform admin (role OR bootstrap email). */
+export function isAdminSession(session: JWTPayload): boolean {
+  return session.role === 'admin' || session.email === ADMIN_EMAIL;
+}
+
+/**
+ * Require a minimum role.  Admins always pass every role check.
+ * Role hierarchy: admin > expert > user
+ */
+export async function requireRole(
+  req: NextRequest,
+  role: 'admin' | 'expert' | 'user'
+): Promise<JWTPayload | null> {
+  const token = req.cookies.get(COOKIE)?.value;
+  if (!token) return null;
+  const payload = await verifyToken(token);
+  if (!payload) return null;
+
+  // Admin passes any check
+  if (isAdminSession(payload)) return payload;
+
+  if (role === 'admin') return null; // non-admin tried to reach admin-only route
+
+  if (role === 'expert' && payload.role !== 'expert') return null;
+
+  return payload;
 }
 
 export function cookieOptions(token: string) {

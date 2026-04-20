@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSessionFromRequest } from '@/lib/auth';
+import { requireRole } from '@/lib/auth';
+import { checkAdminCookie } from '@/lib/admin-auth';
 
 const PAGE_SIZE = 20;
 
-const ADMIN_EMAIL = 'abbasdemir000@gmail.com';
-
 async function requireAdmin(req: NextRequest) {
-  const session = await getSessionFromRequest(req);
-  if (!session || session.email !== ADMIN_EMAIL) return null;
-  return session;
+  if (checkAdminCookie(req)) return { role: 'admin' as const, id: '', email: '', name: '' };
+  return requireRole(req, 'admin');
 }
+
 
 export async function GET(req: NextRequest) {
   try {

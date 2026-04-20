@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
+// Routes that require authentication for every method except GET
 const PROTECTED_PREFIXES = [
   '/api/submissions',
   '/api/analyze',
@@ -12,20 +13,26 @@ const PROTECTED_PREFIXES = [
   '/api/notifications',
 ];
 
-const PUBLIC_PATTERNS = [
-  /^\/api\/consultations\/[^/]+$/, // GET single consultation (public ones)
-  /^\/api\/submissions\?/,          // GET submissions list (public read)
+// GETs on these paths are publicly readable; fine-grained auth handled in the route
+const PUBLIC_GET_PREFIXES = [
+  '/api/consultations',
+  '/api/submissions',
+  '/api/experts',
+  '/api/stats',
+  '/api/domain',
+  '/api/search',
 ];
 
 export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, method } = req.nextUrl as unknown as { pathname: string; method: string };
+  const reqMethod = req.method;
 
-  // Only guard API routes on this list
+  // Only intercept configured prefixes
   const isProtected = PROTECTED_PREFIXES.some(p => pathname.startsWith(p));
   if (!isProtected) return NextResponse.next();
 
-  // Allow GET on public patterns to pass through (individual route handlers add fine-grained checks)
-  if (req.method === 'GET' && PUBLIC_PATTERNS.some(r => r.test(pathname + req.nextUrl.search))) {
+  // Allow public GETs through — individual handlers add ownership checks where needed
+  if (reqMethod === 'GET' && PUBLIC_GET_PREFIXES.some(p => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
@@ -39,10 +46,11 @@ export async function middleware(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
   }
 
-  // Attach user info to headers for route handlers (optional, they re-verify via getSessionFromRequest)
+  // Forward verified identity so route handlers can trust these headers
   const headers = new Headers(req.headers);
   headers.set('x-user-id', payload.id);
   headers.set('x-user-role', payload.role);
+  headers.set('x-user-email', payload.email);
 
   return NextResponse.next({ request: { headers } });
 }
