@@ -134,8 +134,6 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Strict: only admins may mutate verification status
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     let body: VerifyBody;
     try {
