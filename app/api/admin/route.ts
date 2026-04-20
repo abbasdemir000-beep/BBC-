@@ -134,7 +134,6 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Strict: only admins may mutate verification status
-    if (session.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

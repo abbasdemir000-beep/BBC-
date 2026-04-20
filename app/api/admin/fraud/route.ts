@@ -58,7 +58,6 @@ export async function PATCH(req: NextRequest) {
   try {
     const session = await requireAdmin(req);
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json();
     const { flagId, resolved } = body;
