@@ -5,7 +5,7 @@ import { LANGUAGES, type Lang } from '@/lib/i18n/translations';
 import { useLang } from '@/lib/i18n/LanguageContext';
 
 interface Props { onClose: () => void; }
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'forgot';
 type Step = 'language' | 'form';
 
 const LANG_OPTIONS: { code: Lang; label: string; native: string; flag: string; dir: 'ltr' | 'rtl' }[] = [
@@ -77,6 +77,7 @@ export default function AuthModal({ onClose }: Props) {
   const [step, setStep] = useState<Step>('language');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [appLang, setAppLang] = useState<Lang>('en');
 
   const [form, setForm] = useState({
@@ -106,8 +107,15 @@ export default function AuthModal({ onClose }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true); setError('');
+    setLoading(true); setError(''); setInfo('');
     try {
+      if (mode === 'forgot') {
+        const res = await fetch('/api/auth/reset-password', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: form.email }) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        setInfo(data.token ? `Dev token: ${data.token}` : 'If that email exists, a reset link was sent.');
+        return;
+      }
       const url = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
       const body = mode === 'login'
         ? { email: form.email, password: form.password }
@@ -141,11 +149,11 @@ export default function AuthModal({ onClose }: Props) {
           <button onClick={onClose} className="text-white/60 hover:text-white text-2xl leading-none transition-colors">×</button>
         </div>
 
-        {/* Mode tabs (only when on form step) */}
-        {step === 'form' && (
+        {/* Mode tabs (only when on form step, not forgot) */}
+        {step === 'form' && mode !== 'forgot' && (
           <div className="flex gap-1 p-3 border-b" style={{ borderColor: 'var(--border)' }}>
-            {(['login', 'register'] as Mode[]).map(m => (
-              <button key={m} onClick={() => { setMode(m); setError(''); }}
+            {(['login', 'register'] as const).map(m => (
+              <button key={m} onClick={() => { setMode(m); setError(''); setInfo(''); }}
                 className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
                 style={mode === m
                   ? { background: 'var(--accent)', color: '#fff', boxShadow: '0 4px 12px var(--accent-glow)' }
@@ -182,8 +190,20 @@ export default function AuthModal({ onClose }: Props) {
             </div>
           )}
 
+          {/* ── Forgot password ── */}
+          {step === 'form' && mode === 'forgot' && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Enter your email and we&apos;ll send a reset link.</p>
+              <FormField label={ui.email} type="email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} placeholder="you@example.com" />
+              {error && <div className="px-4 py-3 rounded-xl text-sm" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}>{error}</div>}
+              {info && <div className="px-4 py-3 rounded-xl text-sm" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)', wordBreak: 'break-all' }}>{info}</div>}
+              <button type="submit" disabled={loading} className="btn-primary w-full py-3">{loading ? ui.wait : 'Send Reset Link'}</button>
+              <button type="button" onClick={() => { setMode('login'); setError(''); setInfo(''); }} className="w-full text-xs py-2 text-center transition-colors" style={{ color: 'var(--text-muted)' }}>← Back to sign in</button>
+            </form>
+          )}
+
           {/* ── Step 2: Form ── */}
-          {step === 'form' && (
+          {step === 'form' && mode !== 'forgot' && (
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* App language badge + change link */}
               <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs"
@@ -203,7 +223,15 @@ export default function AuthModal({ onClose }: Props) {
 
               {mode === 'register' && <FormField label={ui.fullName} value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder="Your display name" />}
               <FormField label={ui.email} type="email" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} placeholder="you@example.com" />
-              <FormField label={ui.password} type="password" value={form.password} onChange={v => setForm(f => ({ ...f, password: v }))} placeholder="••••••••" />
+              <div>
+                <FormField label={ui.password} type="password" value={form.password} onChange={v => setForm(f => ({ ...f, password: v }))} placeholder="••••••••" />
+                {mode === 'login' && (
+                  <button type="button" onClick={() => { setMode('forgot'); setError(''); setInfo(''); }}
+                    className="mt-1 text-xs transition-colors" style={{ color: 'var(--accent)' }}>
+                    Forgot password?
+                  </button>
+                )}
+              </div>
 
               {mode === 'register' && (
                 <>

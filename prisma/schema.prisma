@@ -455,3 +455,14 @@ model Message {
   chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
   sender     User?    @relation(fields: [senderId], references: [id])
 }
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
