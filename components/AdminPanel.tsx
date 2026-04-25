@@ -45,9 +45,14 @@ export default function AdminPanel() {
 
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Admin Panel</h1>
-        <p className="text-slate-500 text-sm mt-1">Platform overview and moderation</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Admin Panel</h1>
+          <p className="text-slate-500 text-sm mt-1">Platform overview and moderation</p>
+        </div>
+        <a href="/admin" className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all">
+          Open Full Admin Panel →
+        </a>
       </div>
 
       {/* Stats */}
