@@ -39,7 +39,7 @@ export async function getCollection<T extends DocumentData>(
 ): Promise<T[]> {
   try {
     const querySnapshot = await getDocs(collection(db, collectionName));
-    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as T));
+    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as unknown as T));
   } catch (error) {
     console.error('Error getting collection:', error);
     throw error;
@@ -108,7 +108,7 @@ export async function queryDocuments<T extends DocumentData>(
       where(field, operator, value)
     );
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as T));
+    return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as unknown as T));
   } catch (error) {
     console.error('Error querying documents:', error);
     throw error;
