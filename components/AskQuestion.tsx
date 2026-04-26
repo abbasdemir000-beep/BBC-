@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import { motion } from 'framer-motion';
 
 type Step = 'input' | 'ad' | 'result';
 
@@ -15,9 +16,9 @@ interface Analysis {
 }
 
 const ADS = [
-  { title: 'Grow your business with AI', body: 'Join 50,000+ companies using our platform to automate knowledge workflows.', cta: 'Learn More', color: 'from-blue-600 to-indigo-700', icon: '🚀' },
-  { title: 'Expert Network — Now Open', body: 'Connect with verified professionals in 20+ domains. Get answers fast.', cta: 'Explore', color: 'from-purple-600 to-pink-600', icon: '🧠' },
-  { title: 'KnowledgeMarket Pro', body: 'Unlimited questions, priority routing, and advanced analytics for teams.', cta: 'Try Free', color: 'from-green-600 to-teal-600', icon: '⭐' },
+  { title: 'Grow your business with AI', body: 'Join 50,000+ companies using our platform to automate knowledge workflows.', cta: 'Learn More', icon: '🚀' },
+  { title: 'Expert Network — Now Open', body: 'Connect with verified professionals in 20+ domains. Get answers fast.', cta: 'Explore', icon: '🧠' },
+  { title: 'KnowledgeMarket Pro', body: 'Unlimited questions, priority routing, and advanced analytics for teams.', cta: 'Try Free', icon: '⭐' },
 ];
 
 const PIPELINE_STEPS = [
@@ -42,9 +43,7 @@ function AdOverlay({ onSkip, onDone, apiPromise }: {
   const adRef = useRef(ADS[Math.floor(Math.random() * ADS.length)]);
   const ad = adRef.current;
 
-  useEffect(() => {
-    apiPromise.then(data => { setApiData(data); setApiDone(true); });
-  }, [apiPromise]);
+  useEffect(() => { apiPromise.then(data => { setApiData(data); setApiDone(true); }); }, [apiPromise]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -55,45 +54,43 @@ function AdOverlay({ onSkip, onDone, apiPromise }: {
         if (resolvedStep >= 0) setCurrentStep(resolvedStep);
         return next;
       });
-      setTimeLeft(prev => {
-        if (prev <= 1) { setCanSkip(true); return 0; }
-        return prev - 1;
-      });
+      setTimeLeft(prev => { if (prev <= 1) { setCanSkip(true); return 0; } return prev - 1; });
     }, 1000);
     return () => clearInterval(interval);
   }, []);
 
   function handleSkip() {
-    if (apiDone && apiData) onDone(apiData);
-    else onSkip();
+    if (apiDone && apiData) onDone(apiData); else onSkip();
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(12px)' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: 'rgba(26,26,26,0.85)', backdropFilter: 'blur(8px)' }}>
       <div className="w-full max-w-lg mx-4 space-y-4">
         {/* Ad card */}
-        <div className={`rounded-3xl bg-gradient-to-br ${ad.color} p-8 text-white shadow-2xl`}>
+        <div className="p-10 text-center"
+          style={{ background: 'var(--text-primary)', color: 'var(--bg)' }}>
           <div className="text-5xl mb-4">{ad.icon}</div>
-          <h2 className="text-2xl font-black mb-2">{ad.title}</h2>
-          <p className="text-white/80 text-sm mb-6">{ad.body}</p>
+          <h2 className="text-2xl font-bold italic serif mb-3">{ad.title}</h2>
+          <p className="text-sm mb-6 font-sans" style={{ opacity: 0.7 }}>{ad.body}</p>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-white/60 uppercase tracking-widest font-medium">Sponsored</span>
-            <button className="px-5 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-sm font-semibold transition-all border border-white/30">
+            <span className="text-[9px] font-bold uppercase tracking-[0.3em] font-sans" style={{ opacity: 0.4 }}>Sponsored</span>
+            <button className="btn-editorial-outline !border-current" style={{ color: 'var(--bg)', borderColor: 'rgba(249,247,242,0.4)', padding: '8px 20px' }}>
               {ad.cta} →
             </button>
           </div>
         </div>
 
-        {/* Pipeline progress */}
-        <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-          <div className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>
-            Processing your question
+        {/* Pipeline */}
+        <div className="p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="text-[10px] font-bold uppercase tracking-widest mb-4 font-sans" style={{ opacity: 0.4 }}>
+            Processing your inquiry
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {PIPELINE_STEPS.map((step, i) => (
-              <div key={step.label} className={`flex items-center gap-3 transition-all duration-500 ${i <= currentStep ? 'opacity-100' : 'opacity-30'}`}>
-                <span className="text-base w-6 text-center">{i < currentStep ? '✅' : i === currentStep ? step.icon : '○'}</span>
-                <span className="text-sm" style={{ color: i === currentStep ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: i === currentStep ? 600 : 400 }}>
+              <div key={step.label} className={`flex items-center gap-3 transition-all duration-500 ${i <= currentStep ? 'opacity-100' : 'opacity-25'}`}>
+                <span className="text-base w-5 text-center">{i < currentStep ? '✅' : i === currentStep ? step.icon : '○'}</span>
+                <span className="text-sm font-sans" style={{ color: i === currentStep ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: i === currentStep ? 700 : 400 }}>
                   {step.label}
                 </span>
               </div>
@@ -101,18 +98,13 @@ function AdOverlay({ onSkip, onDone, apiPromise }: {
           </div>
         </div>
 
-        {/* Skip button */}
         <div className="flex justify-end">
           {canSkip ? (
-            <button
-              onClick={handleSkip}
-              className="px-6 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2"
-              style={{ background: 'var(--surface)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-            >
-              {apiDone ? 'View Results →' : 'Skip Ad →'}
+            <button onClick={handleSkip} className="btn-editorial-outline" style={{ padding: '8px 24px' }}>
+              {apiDone ? 'View Results →' : 'Skip →'}
             </button>
           ) : (
-            <div className="px-6 py-2.5 rounded-xl text-sm font-medium" style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
+            <div className="text-[10px] font-bold uppercase tracking-widest font-sans" style={{ color: 'rgba(249,247,242,0.5)' }}>
               Skip in {timeLeft}s
             </div>
           )}
@@ -146,7 +138,6 @@ export default function AskQuestion() {
       if (!res.ok) throw new Error(resData.error || 'Failed to create consultation');
       const id = resData.id!;
       setConsultationId(id);
-
       const aRes = await fetch('/api/analyze', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ consultationId: id, text: `${title}\n\n${description}` }),
@@ -156,96 +147,112 @@ export default function AskQuestion() {
       return aData;
     })();
 
-    promise.catch(err => {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-      setStep('input');
-    });
-
+    promise.catch(err => { setError(err instanceof Error ? err.message : 'Something went wrong'); setStep('input'); });
     setApiPromise(promise);
     setStep('ad');
   }
 
   const urgencyOpts = [
-    { key: 'low',      label: t('ask_low'),      icon: '🔵' },
-    { key: 'normal',   label: t('ask_normal'),    icon: '⚪' },
-    { key: 'high',     label: t('ask_high'),      icon: '🟡' },
-    { key: 'critical', label: t('ask_critical'),  icon: '🔴' },
+    { key: 'low',      label: t('ask_low')      },
+    { key: 'normal',   label: t('ask_normal')   },
+    { key: 'high',     label: t('ask_high')     },
+    { key: 'critical', label: t('ask_critical') },
   ];
 
   if (step === 'ad' && apiPromise) return (
-    <AdOverlay
-      apiPromise={apiPromise}
+    <AdOverlay apiPromise={apiPromise}
       onDone={data => { setAnalysis(data); setStep('result'); }}
-      onSkip={() => {
-        apiPromise.then(data => { setAnalysis(data); setStep('result'); }).catch(() => setStep('input'));
-      }}
-    />
+      onSkip={() => { apiPromise.then(data => { setAnalysis(data); setStep('result'); }).catch(() => setStep('input')); }} />
   );
 
   if (step === 'result' && analysis) return (
-    <AnalysisResult
-      analysis={analysis}
-      consultationId={consultationId}
-      onReset={() => { setStep('input'); setTitle(''); setDescription(''); setAnalysis(null); }}
-    />
+    <AnalysisResult analysis={analysis} consultationId={consultationId}
+      onReset={() => { setStep('input'); setTitle(''); setDescription(''); setAnalysis(null); }} />
   );
 
   return (
-    <div className="p-8 max-w-2xl mx-auto" dir={dir}>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('ask_title')}</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{t('ask_subtitle')}</p>
+    <div className="space-y-12" dir={dir}>
+      <div className="flex justify-between items-baseline flex-wrap mb-10 gap-3">
+        <div>
+          <h1 className="text-4xl md:text-6xl font-light tracking-tight serif">
+            Submit a<br /><span className="italic">Knowledge Inquiry</span>
+          </h1>
+          <p className="tag-editorial mt-3">{t('ask_subtitle')}</p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="card space-y-5">
-        <div>
-          <label className="text-sm font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-            {t('ask_label_title')}
-          </label>
-          <input className="input" placeholder={t('ask_placeholder_t')} value={title}
-            onChange={e => setTitle(e.target.value)} required minLength={3} maxLength={200} />
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-            {t('ask_label_desc')}
-          </label>
-          <textarea className="input resize-none" rows={6} placeholder={t('ask_placeholder_d')}
-            value={description} onChange={e => setDescription(e.target.value)} required minLength={5} />
-          <div className="text-xs mt-1 text-end" style={{ color: 'var(--text-muted)' }}>{description.length} chars</div>
-        </div>
-
-        <div>
-          <label className="text-sm font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-            {t('ask_urgency')}
-          </label>
-          <div className="grid grid-cols-4 gap-2">
-            {urgencyOpts.map(u => (
-              <button key={u.key} type="button" onClick={() => setUrgency(u.key)}
-                className="py-2 rounded-xl text-sm font-medium transition-all"
-                style={urgency === u.key ? {
-                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                  color: '#fff',
-                  border: '1px solid transparent',
-                } : {
-                  background: 'var(--surface-2)',
-                  color: 'var(--text-secondary)',
-                  border: '1px solid var(--border)',
-                }}>
-                {u.icon} {u.label}
-              </button>
-            ))}
+      <div className="editorial-card p-10 md:p-12 relative max-w-3xl">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest mb-3 block font-sans" style={{ opacity: 0.4 }}>
+              {t('ask_label_title')}
+            </label>
+            <input
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '14px 16px', fontSize: 14, outline: 'none', width: '100%', fontFamily: 'Inter' }}
+              placeholder={t('ask_placeholder_t')}
+              value={title} onChange={e => setTitle(e.target.value)} required minLength={3} maxLength={200}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--text-primary)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            />
           </div>
-        </div>
 
-        {error && (
-          <div className="rounded-xl p-3 text-sm" style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
-            {error}
+          <div>
+            <label className="text-[10px] font-bold uppercase tracking-widest mb-3 block font-sans" style={{ opacity: 0.4 }}>
+              {t('ask_label_desc')}
+            </label>
+            <textarea
+              className="serif"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '14px 16px', fontSize: 17, lineHeight: 1.6, outline: 'none', width: '100%', minHeight: 160, resize: 'none', fontStyle: 'italic', fontFamily: 'Playfair Display, Georgia, serif' }}
+              placeholder="Describe your technical challenge, research problem, or innovation need..."
+              value={description} onChange={e => setDescription(e.target.value)} required minLength={5}
+              onFocus={e => (e.currentTarget.style.borderColor = 'var(--text-primary)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+            />
+            <div className="text-end text-[10px] mt-1 font-sans" style={{ opacity: 0.35 }}>{description.length} chars</div>
           </div>
-        )}
 
-        <button type="submit" className="btn-primary w-full py-3 text-base font-semibold">{t('ask_submit')}</button>
-      </form>
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex flex-col gap-2 flex-1">
+              <label className="text-[10px] font-bold uppercase tracking-widest font-sans" style={{ opacity: 0.4 }}>
+                {t('ask_urgency')}
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {urgencyOpts.map(u => (
+                  <button key={u.key} type="button" onClick={() => setUrgency(u.key)}
+                    style={{
+                      padding: '10px 8px',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '0.15em',
+                      textTransform: 'uppercase',
+                      fontFamily: 'Inter',
+                      border: urgency === u.key ? '1px solid var(--text-primary)' : '1px solid var(--border)',
+                      background: urgency === u.key ? 'var(--text-primary)' : 'transparent',
+                      color: urgency === u.key ? 'var(--bg)' : 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}>
+                    {u.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {error && (
+            <div style={{ border: '1px solid rgba(168,50,48,0.3)', background: 'rgba(168,50,48,0.06)', padding: '12px 16px', fontSize: 13, color: '#a83230', fontFamily: 'Inter' }}>
+              {error}
+            </div>
+          )}
+
+          <div className="flex items-end justify-between gap-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+            <div className="text-[10px] uppercase tracking-widest font-bold font-sans" style={{ opacity: 0.35 }}>
+              Bounty (optional)
+            </div>
+            <button type="submit" className="btn-editorial" style={{ minWidth: 180 }}>{t('ask_submit')}</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -256,69 +263,77 @@ function AnalysisResult({ analysis, consultationId, onReset }: { analysis: Analy
   const flags = JSON.parse(a.safetyFlags || '[]') as string[];
 
   const resultItems = [
-    { label: t('result_domain'),     value: a.detectedDomain,      icon: '📚' },
-    { label: t('result_subdomain'),  value: a.detectedSubDomain,   icon: '🗂️' },
-    { label: t('result_topic'),      value: a.detectedTopic,       icon: '🏷️' },
-    { label: t('result_qtype'),      value: a.questionType?.replace('_', ' '), icon: '❓' },
-    { label: t('result_difficulty'), value: a.difficulty,          icon: '📊' },
-    { label: t('result_confidence'), value: `${Math.round(a.confidence * 100)}%`, icon: '🎯' },
+    { label: t('result_domain'),     value: a.detectedDomain },
+    { label: t('result_subdomain'),  value: a.detectedSubDomain },
+    { label: t('result_topic'),      value: a.detectedTopic },
+    { label: t('result_qtype'),      value: a.questionType?.replace('_', ' ') },
+    { label: t('result_difficulty'), value: a.difficulty },
+    { label: t('result_confidence'), value: `${Math.round(a.confidence * 100)}%` },
   ];
 
   return (
-    <div className="p-8 max-w-2xl mx-auto space-y-6 animate-slide-in" dir={dir}>
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      className="space-y-12 max-w-3xl" dir={dir}>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('ask_done_title')}</h1>
-        <button onClick={onReset} className="btn-secondary text-sm">{t('ask_another')}</button>
+        <h1 className="text-3xl font-light serif italic">{t('ask_done_title')}</h1>
+        <button onClick={onReset} className="btn-editorial-outline" style={{ padding: '8px 20px' }}>{t('ask_another')}</button>
       </div>
 
       {!a.isSafe && (
-        <div className="rounded-2xl p-4" style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)' }}>
-          <div className="font-semibold mb-1" style={{ color: '#f87171' }}>{t('safety_warning')}</div>
-          <p className="text-sm" style={{ color: '#fca5a5' }}>{flags.join(', ')}</p>
+        <div style={{ border: '1px solid rgba(168,50,48,0.3)', background: 'rgba(168,50,48,0.06)', padding: '16px 20px' }}>
+          <div className="font-bold mb-1 font-sans text-sm" style={{ color: '#a83230' }}>{t('safety_warning')}</div>
+          <p className="text-sm font-sans" style={{ color: '#a83230', opacity: 0.8 }}>{flags.join(', ')}</p>
         </div>
       )}
 
-      <div className="card space-y-4">
-        <div className="grid grid-cols-2 gap-3">
+      <div className="editorial-card p-8 space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {resultItems.map(item => (
-            <div key={item.label} className="rounded-xl p-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-              <div className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>{item.icon} {item.label}</div>
-              <div className="text-sm font-semibold capitalize" style={{ color: 'var(--text-primary)' }}>{item.value}</div>
+            <div key={item.label} style={{ borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
+              <div className="text-[9px] font-bold uppercase tracking-widest mb-1 font-sans" style={{ opacity: 0.4 }}>{item.label}</div>
+              <div className="text-sm font-bold capitalize font-sans" style={{ color: 'var(--text-primary)' }}>{item.value}</div>
             </div>
           ))}
         </div>
-        <div className="rounded-xl p-3" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)' }}>
-          <div className="text-xs font-semibold mb-1" style={{ color: 'var(--accent)' }}>{t('result_reasoning')}</div>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{a.reasoning}</p>
+
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
+          <div className="text-[9px] font-bold uppercase tracking-widest mb-2 font-sans" style={{ color: 'var(--accent)' }}>
+            {t('result_reasoning')}
+          </div>
+          <p className="text-sm leading-relaxed italic serif" style={{ color: 'var(--text-secondary)' }}>{a.reasoning}</p>
         </div>
-        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{analysis.processingTimeMs}ms</div>
+        <div className="text-[10px] font-sans" style={{ opacity: 0.3 }}>{analysis.processingTimeMs}ms · ID: {consultationId}</div>
       </div>
 
       {analysis.routings.length > 0 && (
-        <div className="card space-y-3">
-          <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('result_matched')}</h2>
+        <div className="editorial-card p-8 space-y-4">
+          <h2 className="font-bold text-lg serif italic">{t('result_matched')}</h2>
           {analysis.routings.map((r, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>{r.rank}</div>
+            <div key={i} className="flex items-center gap-6 py-4"
+              style={{ borderBottom: i < analysis.routings.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div className="w-8 h-8 flex items-center justify-center font-black text-sm serif"
+                style={{ border: '1px solid var(--border)' }}>{r.rank}</div>
               <div className="flex-1">
-                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{r.expertName}</div>
-                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('result_similarity')}: {(r.similarityScore * 100).toFixed(1)}%</div>
+                <div className="font-bold text-sm">{r.expertName}</div>
+                <div className="text-[10px] uppercase tracking-widest font-sans mt-0.5" style={{ opacity: 0.4 }}>
+                  {t('result_similarity')}: {(r.similarityScore * 100).toFixed(1)}%
+                </div>
               </div>
-              <div className="w-24 rounded-full h-2" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                <div className="h-2 rounded-full" style={{ width: `${r.similarityScore * 100}%`, background: 'linear-gradient(90deg,#6366f1,#8b5cf6)' }} />
+              <div className="w-28 h-px relative" style={{ background: 'var(--border)' }}>
+                <div className="absolute inset-y-0 left-0 h-px"
+                  style={{ width: `${r.similarityScore * 100}%`, background: 'var(--text-primary)' }} />
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="card text-center space-y-3">
-        <div className="text-3xl">⚡</div>
-        <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>{t('ask_comp_started')}</h3>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Experts are being notified and examined. You'll receive a chat invitation when an expert passes.</p>
-        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>ID: {consultationId}</div>
+      <div className="editorial-card p-10 text-center space-y-4">
+        <p className="text-2xl font-light italic serif">{t('ask_comp_started')}</p>
+        <p className="text-sm font-sans" style={{ opacity: 0.5 }}>
+          Experts are being notified. You'll receive a chat invitation when an expert passes examination.
+        </p>
       </div>
-    </div>
+    </motion.div>
   );
 }

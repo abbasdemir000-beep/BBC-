@@ -2,12 +2,29 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
 import ExpertProfileModal from './ExpertProfileModal';
+import { motion } from 'framer-motion';
 
 interface Expert {
   id: string; name: string; bio: string; yearsExperience: number;
   hourlyRate: number; rating: number; totalReviews: number; totalWins: number;
   isVerified: boolean; isAvailable: boolean;
   domain?: { name: string; icon: string; color: string; slug: string };
+}
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1,2,3,4,5].map(i => (
+        <svg key={i} width="10" height="10" viewBox="0 0 24 24"
+          fill={i <= Math.floor(rating) ? 'currentColor' : 'none'}
+          stroke="currentColor" strokeWidth="2"
+          style={{ color: i <= Math.floor(rating) ? 'var(--text-primary)' : 'var(--border)' }}>
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+      ))}
+      <span className="ml-2 text-[11px] font-bold font-sans">{rating.toFixed(1)}</span>
+    </div>
+  );
 }
 
 export default function ExpertsDirectory() {
@@ -42,117 +59,123 @@ export default function ExpertsDirectory() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-8 space-y-6" dir={dir}>
+    <div className="space-y-12" dir={dir}>
       {selectedExpert && <ExpertProfileModal expertId={selectedExpert} onClose={() => setSelectedExpert(null)} />}
 
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('exp_title')}</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} {t('exp_title').toLowerCase()}</p>
+      {/* Header */}
+      <div className="flex justify-between items-baseline flex-wrap mb-10 gap-3">
+        <div>
+          <h1 className="text-4xl md:text-6xl font-light tracking-tight serif">{t('exp_title')}</h1>
+          <p className="tag-editorial mt-3">The Directory — {total} specialists</p>
+        </div>
+        <div className="flex gap-3 flex-wrap mt-4">
+          <input
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '10px 16px', fontSize: 13, outline: 'none', width: 220, fontFamily: 'Inter' }}
+            placeholder={t('exp_search')}
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            onFocus={e => (e.currentTarget.style.borderColor = 'var(--text-primary)')}
+            onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+          />
+          <select
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '10px 16px', fontSize: 13, outline: 'none', cursor: 'pointer', fontFamily: 'Inter' }}
+            value={domain}
+            onChange={e => { setDomain(e.target.value); setPage(1); }}>
+            <option value="">{t('exp_all_domains')}</option>
+            {domains.map(d => <option key={d.slug} value={d.slug}>{d.icon} {d.name}</option>)}
+          </select>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 10, fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-secondary)', fontFamily: 'Inter' }}>
+            <input type="checkbox" checked={verified} onChange={e => { setVerified(e.target.checked); setPage(1); }} />
+            {t('exp_verified')}
+          </label>
+          <button className="btn-editorial-outline">Filter Results</button>
+        </div>
       </div>
 
-      <div className="flex gap-3 flex-wrap">
-        <input
-          className="input w-64"
-          placeholder={t('exp_search')}
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1); }}
-        />
-        <select
-          className="input w-52"
-          value={domain}
-          onChange={e => { setDomain(e.target.value); setPage(1); }}
-          style={{ background: 'var(--surface-2)', color: 'var(--text-primary)' }}
-        >
-          <option value="">{t('exp_all_domains')}</option>
-          {domains.map(d => <option key={d.slug} value={d.slug}>{d.icon} {d.name}</option>)}
-        </select>
-        <label
-          className="flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
-          style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
-        >
-          <input type="checkbox" className="rounded accent-indigo-500" checked={verified} onChange={e => { setVerified(e.target.checked); setPage(1); }} />
-          {t('exp_verified')}
-        </label>
-      </div>
-
+      {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-52 skeleton rounded-2xl" />)}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
+          {[...Array(6)].map((_, i) => <div key={i} className="h-40 skeleton" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
           {experts.map(expert => (
-            <ExpertCard key={expert.id} expert={expert} onViewProfile={() => setSelectedExpert(expert.id)} />
+            <motion.div key={expert.id}
+              initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+              className="group cursor-pointer"
+              onClick={() => setSelectedExpert(expert.id)}>
+              <div className="flex gap-6 items-start">
+                {/* Portrait */}
+                <div className="w-20 h-24 shrink-0 overflow-hidden relative"
+                  style={{ background: 'var(--text-primary)' }}>
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold italic serif uppercase"
+                    style={{ background: 'rgba(168,141,94,0.2)', color: 'var(--bg)', opacity: 0.9 }}>
+                    {expert.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div className="absolute inset-0 transition-colors group-hover:opacity-0"
+                    style={{ background: 'rgba(26,26,26,0.08)' }} />
+                  {expert.isAvailable && (
+                    <div className="absolute bottom-1.5 right-1.5 w-2 h-2 rounded-full"
+                      style={{ background: '#2d7a50' }} />
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex flex-col pb-6 w-full"
+                  style={{ borderBottom: '1px solid var(--border)' }}>
+                  <div className="flex justify-between items-baseline mb-1">
+                    <span className="font-bold text-xl leading-none transition-colors group-hover:text-accent"
+                      style={{ color: 'var(--text-primary)' }}>
+                      {expert.name}
+                      {expert.isVerified && (
+                        <span className="ml-2 text-[10px] font-sans" style={{ color: '#4b8fa8' }}>✓ Verified</span>
+                      )}
+                    </span>
+                    <span className="text-[11px] font-extrabold tracking-widest font-sans">
+                      ${expert.hourlyRate}/H
+                    </span>
+                  </div>
+                  {expert.domain && (
+                    <span className="tag-editorial text-[10px] tracking-widest mt-1">
+                      {expert.domain.icon} {expert.domain.name} · {expert.yearsExperience}{t('years')} exp
+                    </span>
+                  )}
+                  <p className="text-sm mt-3 leading-relaxed italic serif"
+                    style={{ opacity: 0.6 }}>{expert.bio}</p>
+                  <div className="mt-4 flex justify-between items-center">
+                    <StarRating rating={expert.rating} />
+                    <span className="text-[9px] uppercase font-bold tracking-[0.2em] underline transition-opacity"
+                      style={{ opacity: 0.35, fontFamily: 'Inter' }}
+                      onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                      onMouseLeave={e => (e.currentTarget.style.opacity = '0.35')}>
+                      {expert.totalWins} {t('exp_wins')} · Request Session
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           ))}
-        </div>
-      )}
-
-      {pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary disabled:opacity-50">{t('prev')}</button>
-          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{t('page')} {page} {t('of')} {pages}</span>
-          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages} className="btn-secondary disabled:opacity-50">{t('next')}</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ExpertCard({ expert, onViewProfile }: { expert: Expert; onViewProfile: () => void }) {
-  const { t } = useLang();
-  return (
-    <div className="card cursor-pointer group" onClick={onViewProfile}
-      style={{ transition: 'transform 0.2s, box-shadow 0.2s' }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; }}>
-
-      {/* Header row */}
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}>
-          {expert.name.charAt(0)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{expert.name}</span>
-            {expert.isVerified && (
-              <span className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] text-white font-bold"
-                style={{ background: '#38bdf8' }}>✓</span>
-            )}
-          </div>
-          {expert.domain && (
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {expert.domain.icon} {expert.domain.name}
-            </span>
+          {experts.length === 0 && (
+            <p className="col-span-2 text-sm italic serif py-16 text-center" style={{ opacity: 0.4 }}>
+              No architects found matching your criteria.
+            </p>
           )}
         </div>
-        <div
-          className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1"
-          style={{ background: expert.isAvailable ? '#34d399' : 'var(--text-muted)' }}
-          title={expert.isAvailable ? t('exp_available') : t('exp_busy')}
-        />
-      </div>
+      )}
 
-      {/* Bio */}
-      <p className="text-xs line-clamp-2 mb-4 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-        {expert.bio}
-      </p>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="px-2 py-1.5 rounded-xl" style={{ background: 'var(--surface-2)' }}>
-          <div className="text-sm font-bold" style={{ color: '#fbbf24' }}>⭐ {expert.rating.toFixed(1)}</div>
-          <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{expert.totalReviews} {t('exp_reviews')}</div>
+      {/* Pagination */}
+      {pages > 1 && (
+        <div className="flex items-center justify-center gap-4 pt-8"
+          style={{ borderTop: '1px solid var(--border)' }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            className="btn-editorial-outline" style={{ padding: '8px 20px' }}>{t('prev')}</button>
+          <span className="text-[10px] font-bold uppercase tracking-widest font-sans" style={{ opacity: 0.5 }}>
+            {t('page')} {page} {t('of')} {pages}
+          </span>
+          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
+            className="btn-editorial-outline" style={{ padding: '8px 20px' }}>{t('next')}</button>
         </div>
-        <div className="px-2 py-1.5 rounded-xl" style={{ background: 'var(--surface-2)' }}>
-          <div className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{expert.yearsExperience}{t('years')}</div>
-          <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('exp_experience')}</div>
-        </div>
-        <div className="px-2 py-1.5 rounded-xl" style={{ background: 'var(--surface-2)' }}>
-          <div className="text-sm font-bold" style={{ color: '#34d399' }}>{expert.totalWins}</div>
-          <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('exp_wins')}</div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

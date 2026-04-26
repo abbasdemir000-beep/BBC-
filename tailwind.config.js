@@ -9,6 +9,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        paper:  '#f9f7f2',
+        ink:    '#1a1a1a',
+        accent: { DEFAULT: '#a88d5e', dark: '#c4a96e', hover: '#8b7245' },
         brand: {
           50:  '#eef2ff',
           100: '#e0e7ff',
@@ -43,7 +46,8 @@ module.exports = {
       },
       fontFamily: {
         sans:    ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Inter', 'system-ui', 'sans-serif'],
+        serif:   ['Playfair Display', 'Georgia', 'serif'],
+        display: ['Playfair Display', 'Georgia', 'serif'],
         mono:    ['JetBrains Mono', 'monospace'],
       },
       backgroundImage: {

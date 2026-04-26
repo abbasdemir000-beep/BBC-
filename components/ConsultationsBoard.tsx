@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import { motion } from 'framer-motion';
 
 interface Consultation {
   id: string; title: string; description: string; status: string;
@@ -11,21 +12,13 @@ interface Consultation {
   _count: { submissions: number };
 }
 
-const STATUS_MAP: Record<string, { cls: string }> = {
-  pending:   { cls: 'badge-gray'   },
-  analyzing: { cls: 'badge-blue'   },
-  routing:   { cls: 'badge-purple' },
-  active:    { cls: 'badge-green'  },
-  examining: { cls: 'badge-gold'   },
-  completed: { cls: 'badge-green'  },
-  cancelled: { cls: 'badge-red'    },
+const STATUS_MAP: Record<string, string> = {
+  pending: 'badge-gray', analyzing: 'badge-blue', routing: 'badge-purple',
+  active: 'badge-green', examining: 'badge-gold', completed: 'badge-green', cancelled: 'badge-red',
 };
 
-const URGENCY_META: Record<string, { color: string; icon: string }> = {
-  low:      { color: 'var(--text-muted)', icon: '🔵' },
-  normal:   { color: '#38bdf8',           icon: '⚪' },
-  high:     { color: '#fbbf24',           icon: '🟡' },
-  critical: { color: '#f87171',           icon: '🔴' },
+const URGENCY_COLOR: Record<string, string> = {
+  low: '#2d7a50', normal: '#4b8fa8', high: '#b87333', critical: '#a83230',
 };
 
 export default function ConsultationsBoard() {
@@ -58,93 +51,93 @@ export default function ConsultationsBoard() {
   ];
 
   return (
-    <div className="p-8 space-y-6" dir={dir}>
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('comp_title')}</h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} {t('comp_title').toLowerCase()}</p>
+    <div className="space-y-12" dir={dir}>
+      {/* Header */}
+      <div className="flex justify-between items-baseline flex-wrap mb-10 gap-3">
+        <div>
+          <h1 className="text-4xl md:text-6xl font-light tracking-tight serif">
+            Marketplace <span className="italic">Bounties</span>
+          </h1>
+          <p className="tag-editorial mt-3">Open Inquiries — {total}</p>
+        </div>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
+      {/* Status filters */}
+      <div className="flex gap-6 flex-wrap pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
         {statusFilters.map(s => (
-          <button
-            key={s.key}
-            onClick={() => { setStatus(s.key); setPage(1); }}
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-            style={status === s.key ? {
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-              color: '#fff',
-              border: '1px solid transparent',
-            } : {
-              background: 'var(--surface-2)',
-              color: 'var(--text-secondary)',
-              border: '1px solid var(--border)',
-            }}
-          >
+          <button key={s.key} onClick={() => { setStatus(s.key); setPage(1); }}
+            className="nav-link"
+            style={{ color: 'var(--text-primary)', borderBottom: status === s.key ? '1px solid var(--text-primary)' : 'none', opacity: status === s.key ? 1 : 0.38, paddingBottom: 2 }}>
             {s.label}
           </button>
         ))}
       </div>
 
+      {/* List */}
       {loading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => <div key={i} className="h-28 skeleton rounded-2xl" />)}
+        <div className="space-y-0">
+          {[...Array(5)].map((_, i) => <div key={i} className="h-24 skeleton mb-1" />)}
         </div>
       ) : (
-        <div className="space-y-3">
-          {items.map(c => {
-            const urgency = URGENCY_META[c.urgency] ?? URGENCY_META.normal;
-            return (
-              <div key={c.id} className="card cursor-pointer transition-all duration-150"
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; }}>
-                <div className="flex items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      {c.domain && <span className="text-sm">{c.domain.icon}</span>}
-                      <h3 className="font-semibold text-sm line-clamp-1" style={{ color: 'var(--text-primary)' }}>{c.title}</h3>
-                    </div>
-                    <p className="text-xs line-clamp-2 mb-3 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{c.description}</p>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      {c.domain && (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                          style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                          {c.domain.name}
-                        </span>
-                      )}
-                      {c.difficulty && (
-                        <span className="text-xs capitalize" style={{ color: 'var(--text-muted)' }}>{c.difficulty}</span>
-                      )}
-                      <span className="text-xs font-medium" style={{ color: urgency.color }}>
-                        {urgency.icon} {c.urgency}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <span className={STATUS_MAP[c.status]?.cls ?? 'badge-gray'}>{c.status}</span>
-                    <div className="text-center">
-                      <div className="text-lg font-bold" style={{ color: '#fbbf24' }}>🏆 {c.prizePoints}</div>
-                      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('comp_points')}</div>
-                    </div>
-                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{c._count.submissions} {t('comp_answers')}</div>
-                  </div>
+        <div className="space-y-0">
+          {items.map(c => (
+            <motion.div key={c.id} whileHover={{ x: 5 }}
+              className="flex flex-col md:flex-row justify-between items-start md:items-center py-8 group cursor-pointer transition-colors"
+              style={{ borderBottom: '1px solid var(--border)' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--surface)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}>
+              <div className="flex-1 space-y-2 pr-8">
+                <div className="font-bold text-xl tracking-tight leading-tight transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--accent)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'}>
+                  {c.title}
+                </div>
+                <div className="flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-widest font-sans"
+                  style={{ opacity: 0.4, marginTop: 8 }}>
+                  {c.domain && <span className="italic serif not-italic">{c.domain.name}</span>}
+                  <span>/</span>
+                  <span>{c._count.submissions} {t('comp_answers')}</span>
+                  {c.difficulty && <><span>/</span><span>{c.difficulty}</span></>}
+                  <span style={{ color: URGENCY_COLOR[c.urgency] ?? 'inherit', opacity: 1 }}>
+                    {c.urgency}
+                  </span>
                 </div>
               </div>
-            );
-          })}
+              <div className="flex items-center gap-8 mt-5 md:mt-0 shrink-0">
+                <div>
+                  <div className="text-3xl font-bold italic serif tracking-tight">
+                    ${c.prizePoints}
+                  </div>
+                  <div className="text-[9px] uppercase font-bold tracking-widest font-sans mt-1"
+                    style={{ opacity: 0.4 }}>{t('comp_points')}</div>
+                </div>
+                <span className={STATUS_MAP[c.status] ?? 'badge-gray'}>{c.status}</span>
+                <button className="btn-editorial-outline" style={{ padding: '8px 20px', whiteSpace: 'nowrap' }}>
+                  View Details
+                </button>
+              </div>
+            </motion.div>
+          ))}
           {items.length === 0 && (
-            <div className="text-center py-16">
-              <div className="text-4xl mb-3">🔍</div>
-              <p style={{ color: 'var(--text-muted)' }}>{t('loading')}</p>
-            </div>
+            <p className="text-sm italic serif py-16 text-center" style={{ opacity: 0.4 }}>
+              No bounties found.
+            </p>
           )}
         </div>
       )}
 
+      {/* Pagination */}
       {pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary disabled:opacity-50">{t('prev')}</button>
-          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{page} {t('of')} {pages}</span>
-          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages} className="btn-secondary disabled:opacity-50">{t('next')}</button>
+        <div className="flex items-center justify-center gap-4 pt-8"
+          style={{ borderTop: '1px solid var(--border)' }}>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            className="btn-editorial-outline" style={{ padding: '8px 20px' }}>{t('prev')}</button>
+          <span className="text-[10px] font-bold uppercase tracking-widest font-sans" style={{ opacity: 0.5 }}>
+            {page} {t('of')} {pages}
+          </span>
+          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
+            className="btn-editorial-outline" style={{ padding: '8px 20px' }}>{t('next')}</button>
         </div>
       )}
     </div>
