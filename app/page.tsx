@@ -137,6 +137,13 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen" dir={dir} style={{ background: 'var(--bg)' }}>
+      {/* Aurora ambient orbs */}
+      <div className="aurora" aria-hidden="true">
+        <div className="aurora-orb" />
+        <div className="aurora-orb" />
+        <div className="aurora-orb" />
+      </div>
+
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
       {/* Mobile overlay */}
@@ -173,7 +180,7 @@ export default function Home() {
 
       {/* ── Sidebar ── */}
       <aside className={`${sidebarBase} ${sidebarSlide}`}
-        style={{ background: 'var(--surface)', borderInlineEnd: '1px solid var(--border)' }}>
+        style={{ background: 'var(--surface)', borderInlineEnd: '1px solid var(--border)', position: 'relative', zIndex: 1 }}>
 
         {/* Logo */}
         <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
@@ -252,7 +259,7 @@ export default function Home() {
       </aside>
 
       {/* ── Main ── */}
-      <main className="flex-1 overflow-auto pt-14 md:pt-0 min-w-0 animate-fade-in">
+      <main className="flex-1 overflow-auto pt-14 md:pt-0 min-w-0 animate-fade-in" style={{ position: 'relative', zIndex: 1 }}>
         {tab === 'dashboard'        && <Dashboard />}
         {tab === 'experts'          && <ExpertsDirectory />}
         {tab === 'consultations'    && <ConsultationsBoard />}
