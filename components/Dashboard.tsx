@@ -49,7 +49,7 @@ export default function Dashboard() {
   }, []);
 
   if (loading) return <LoadingSkeleton />;
-  if (!stats) return <div className="p-8" style={{ color: '#f87171' }}>Failed to load stats</div>;
+  if (!stats) return <div className="p-8" style={{ color: '#f87171' }}>{t('dash_load_error')}</div>;
 
   const statValues: Record<string, number> = {
     totalExperts:        stats.totalExperts,

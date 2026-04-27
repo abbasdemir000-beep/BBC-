@@ -7,12 +7,33 @@ export const LANGUAGES: Record<Lang, { label: string; dir: 'ltr' | 'rtl'; flag: 
 };
 
 export const T = {
-  // ── Navigation ──────────────────────────────────────────────────────────
+  // ── Navigation items ────────────────────────────────────────────────────
   nav_dashboard:     { en: 'Dashboard',      ar: 'لوحة التحكم',     ku: 'داشبۆرد' },
   nav_ask:           { en: 'Ask a Question', ar: 'اطرح سؤالاً',     ku: 'پرسیار بکە' },
   nav_competitions:  { en: 'Competitions',   ar: 'المسابقات',       ku: 'پێشبڕکێکان' },
   nav_experts:       { en: 'Experts',        ar: 'الخبراء',         ku: 'پسپۆڕەکان' },
   nav_rewards:       { en: 'Rewards',        ar: 'المكافآت',        ku: 'خەڵاتەکان' },
+  nav_search:        { en: 'Search',         ar: 'بحث',             ku: 'گەڕان' },
+  nav_leaderboard:   { en: 'Leaderboard',    ar: 'لوحة الصدارة',    ku: 'تەختەی پێشەوانان' },
+  nav_my_questions:  { en: 'My Questions',   ar: 'أسئلتي',          ku: 'پرسیارەکانم' },
+  nav_notifications: { en: 'Notifications',  ar: 'الإشعارات',       ku: 'ئاگادارییەکان' },
+  nav_expert_hub:    { en: 'Expert Hub',     ar: 'مركز الخبراء',    ku: 'ناوەندی پسپۆڕ' },
+  nav_admin:         { en: 'Admin',          ar: 'الإدارة',         ku: 'بەڕێوەبردن' },
+
+  // ── Navigation groups ───────────────────────────────────────────────────
+  nav_group_explore:  { en: 'Explore',  ar: 'استكشاف',  ku: 'گەڕان' },
+  nav_group_my_space: { en: 'My Space', ar: 'مساحتي',   ku: 'شوێنم' },
+  nav_group_expert:   { en: 'Expert',   ar: 'خبير',     ku: 'پسپۆڕ' },
+  nav_group_system:   { en: 'System',   ar: 'النظام',   ku: 'سیستەم' },
+
+  // ── App shell ───────────────────────────────────────────────────────────
+  sign_out:          { en: 'Sign out',              ar: 'تسجيل الخروج',             ku: 'دەرچوون' },
+  sign_in:           { en: 'Sign In / Register',    ar: 'تسجيل الدخول / التسجيل',  ku: 'چوونە ژوورەوە / تۆمارکردن' },
+  logo_subtitle:     { en: 'AI Expert Platform',    ar: 'منصة الخبراء بالذكاء الاصطناعي', ku: 'پلاتفۆرمی پسپۆڕ بە هۆشی دەستکرد' },
+  theme_to_light:    { en: 'Switch to light mode',  ar: 'التبديل إلى الوضع الفاتح', ku: 'گۆڕانی بۆ دیمەنی ڕووناک' },
+  theme_to_dark:     { en: 'Switch to dark mode',   ar: 'التبديل إلى الوضع الداكن', ku: 'گۆڕانی بۆ دیمەنی تاریک' },
+  dash_load_error:   { en: 'Failed to load stats',  ar: 'فشل تحميل الإحصائيات',    ku: 'شکستی بارکردنی ئامارەکان' },
+  exp_count:         { en: 'experts',               ar: 'خبير',                     ku: 'پسپۆڕ' },
 
   // ── Dashboard ───────────────────────────────────────────────────────────
   dash_title:        { en: 'Dashboard',                  ar: 'لوحة التحكم',               ku: 'داشبۆرد' },
