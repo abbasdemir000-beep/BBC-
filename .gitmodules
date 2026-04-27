@@ -1,0 +1,3 @@
+[submodule "OpenSpace"]
+	path = OpenSpace
+	url = https://github.com/HKUDS/OpenSpace.git
