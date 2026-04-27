@@ -206,29 +206,6 @@ const DOMAINS = [
   },
 ];
 
-const EXPERTS = [
-  { name: 'Dr. Sarah Chen', email: 'sarah.chen@example.com', bio: 'Cardiologist with 15 years of clinical experience.', domain: 'medicine', yearsExperience: 15, hourlyRate: 150, rating: 4.9, totalReviews: 234 },
-  { name: 'Prof. James Wright', email: 'james.wright@example.com', bio: 'Professor of Structural Engineering at MIT.', domain: 'engineering', yearsExperience: 20, hourlyRate: 120, rating: 4.8, totalReviews: 189 },
-  { name: 'Dr. Maria Santos', email: 'maria.santos@example.com', bio: 'Applied mathematician specializing in numerical analysis.', domain: 'mathematics', yearsExperience: 12, hourlyRate: 100, rating: 4.7, totalReviews: 156 },
-  { name: 'Dr. Amir Khalil', email: 'amir.khalil@example.com', bio: 'Quantum physicist, former CERN researcher.', domain: 'physics', yearsExperience: 18, hourlyRate: 130, rating: 4.9, totalReviews: 201 },
-  { name: 'Alex Kim', email: 'alex.kim@example.com', bio: 'Senior ML Engineer at Google Brain.', domain: 'computer-science', yearsExperience: 10, hourlyRate: 180, rating: 4.8, totalReviews: 312 },
-  { name: 'Jennifer Lee', email: 'jennifer.lee@example.com', bio: 'Corporate attorney with IP law specialization.', domain: 'law', yearsExperience: 14, hourlyRate: 200, rating: 4.7, totalReviews: 145 },
-  { name: 'Michael Torres', email: 'michael.torres@example.com', bio: 'CFO of two successful startups, finance expert.', domain: 'business', yearsExperience: 16, hourlyRate: 160, rating: 4.6, totalReviews: 178 },
-  { name: 'Dr. Priya Sharma', email: 'priya.sharma@example.com', bio: 'Organic chemistry researcher and professor.', domain: 'chemistry', yearsExperience: 11, hourlyRate: 110, rating: 4.8, totalReviews: 167 },
-  { name: 'Dr. Robert Anderson', email: 'robert.anderson@example.com', bio: 'Molecular biologist specializing in gene editing.', domain: 'biology', yearsExperience: 13, hourlyRate: 125, rating: 4.7, totalReviews: 143 },
-  { name: 'Dr. Emma Wilson', email: 'emma.wilson@example.com', bio: 'Educational psychologist and curriculum designer.', domain: 'education', yearsExperience: 9, hourlyRate: 90, rating: 4.6, totalReviews: 98 },
-  { name: 'Dr. Carlos Mendez', email: 'carlos.mendez@example.com', bio: 'Clinical psychologist with CBT expertise.', domain: 'psychology', yearsExperience: 12, hourlyRate: 120, rating: 4.8, totalReviews: 187 },
-  { name: 'Sophia Laurent', email: 'sophia.laurent@example.com', bio: 'Award-winning architect and urban planner.', domain: 'architecture', yearsExperience: 15, hourlyRate: 140, rating: 4.7, totalReviews: 134 },
-  { name: 'Dr. John Park', email: 'john.park@example.com', bio: 'Macroeconomist, former IMF advisor.', domain: 'economics', yearsExperience: 20, hourlyRate: 175, rating: 4.9, totalReviews: 223 },
-  { name: 'Lisa Thompson', email: 'lisa.thompson@example.com', bio: 'Registered dietitian and sports nutritionist.', domain: 'nutrition', yearsExperience: 8, hourlyRate: 85, rating: 4.6, totalReviews: 112 },
-  { name: 'Coach David Brown', email: 'david.brown@example.com', bio: 'Exercise physiologist, Olympic training specialist.', domain: 'sports', yearsExperience: 17, hourlyRate: 110, rating: 4.8, totalReviews: 198 },
-  { name: 'Dr. Anna Green', email: 'anna.green@example.com', bio: 'Climate scientist and environmental policy expert.', domain: 'environmental', yearsExperience: 14, hourlyRate: 130, rating: 4.7, totalReviews: 156 },
-  { name: 'Prof. Thomas Müller', email: 'thomas.muller@example.com', bio: 'Professor of Ethics, specializing in AI ethics.', domain: 'philosophy', yearsExperience: 22, hourlyRate: 115, rating: 4.8, totalReviews: 189 },
-  { name: 'Dr. Rachel Cohen', email: 'rachel.cohen@example.com', bio: 'Historian focusing on 20th century European history.', domain: 'history', yearsExperience: 16, hourlyRate: 95, rating: 4.7, totalReviews: 134 },
-  { name: 'Isabella Rossi', email: 'isabella.rossi@example.com', bio: 'Art historian and contemporary art critic.', domain: 'arts', yearsExperience: 12, hourlyRate: 100, rating: 4.6, totalReviews: 123 },
-  { name: 'Dr. Wei Zhang', email: 'wei.zhang@example.com', bio: 'Computational linguist, NLP researcher.', domain: 'linguistics', yearsExperience: 10, hourlyRate: 120, rating: 4.7, totalReviews: 145 },
-];
-
 const CONSULTATIONS = [
   { title: 'Interpreting ECG results for arrhythmia detection', description: 'I have a patient with irregular heartbeat. The ECG shows some unusual patterns. Can you help interpret the findings and suggest next steps for diagnosis?', domain: 'medicine', questionType: 'diagnosis', difficulty: 'advanced', urgency: 'high' },
   { title: 'Optimal concrete mix design for high-rise foundation', description: 'Working on a 50-story building in seismic zone. Need guidance on concrete mix design for the pile foundation considering both strength and durability requirements.', domain: 'engineering', questionType: 'problem_solving', difficulty: 'expert', urgency: 'normal' },
@@ -326,39 +303,6 @@ async function main() {
     }
   }
 
-  // Create experts
-  const expertIds: string[] = [];
-  for (const e of EXPERTS) {
-    const domainId = domainMap[e.domain];
-    const expert = await prisma.expert.upsert({
-      where: { email: e.email },
-      update: {},
-      create: {
-        name: e.name,
-        email: e.email,
-        bio: e.bio,
-        yearsExperience: e.yearsExperience,
-        hourlyRate: e.hourlyRate,
-        rating: e.rating,
-        totalReviews: e.totalReviews,
-        isVerified: true,
-        isAvailable: true,
-        domainId: domainId || null,
-        embeddingVector: JSON.stringify(Array.from({ length: 64 }, () => Math.random() * 2 - 1)),
-      },
-    });
-    expertIds.push(expert.id);
-
-    // Update domain expert count
-    if (domainId) {
-      await prisma.domain.update({
-        where: { id: domainId },
-        data: { expertCount: { increment: 1 } },
-      });
-    }
-    console.log(`  ✓ Expert: ${e.name}`);
-  }
-
   // Create consultations
   for (let i = 0; i < CONSULTATIONS.length; i++) {
     const c = CONSULTATIONS[i];
@@ -392,7 +336,6 @@ async function main() {
 
   console.log('\n✅ Seed complete!');
   console.log(`   Domains: ${DOMAINS.length}`);
-  console.log(`   Experts: ${EXPERTS.length}`);
   console.log(`   Consultations: ${CONSULTATIONS.length}`);
 }
 

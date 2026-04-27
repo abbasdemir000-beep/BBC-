@@ -45,8 +45,8 @@ export default function ExpertsDirectory() {
     <div className="p-8 space-y-6" dir={dir}>
       {selectedExpert && <ExpertProfileModal expertId={selectedExpert} onClose={() => setSelectedExpert(null)} />}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">{t('exp_title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{total} {t('exp_title').toLowerCase()}</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('exp_title')}</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} {t('exp_found')}</p>
       </div>
 
       <div className="flex gap-3 flex-wrap">
@@ -56,7 +56,8 @@ export default function ExpertsDirectory() {
           <option value="">{t('exp_all_domains')}</option>
           {domains.map(d => <option key={d.slug} value={d.slug}>{d.icon} {d.name}</option>)}
         </select>
-        <label className="flex items-center gap-2 cursor-pointer px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50">
+        <label className="flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl text-sm font-medium"
+          style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
           <input type="checkbox" className="rounded" checked={verified} onChange={e => { setVerified(e.target.checked); setPage(1); }} />
           {t('exp_verified')}
         </label>
@@ -64,7 +65,7 @@ export default function ExpertsDirectory() {
 
       {loading ? (
         <div className="grid grid-cols-3 gap-4 animate-pulse">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-48 bg-slate-200 rounded-2xl" />)}
+          {[...Array(6)].map((_, i) => <div key={i} className="h-48 skeleton rounded-2xl" />)}
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
@@ -88,34 +89,35 @@ function ExpertCard({ expert, onViewProfile }: { expert: Expert; onViewProfile: 
   return (
     <div className="card hover:shadow-md transition-shadow cursor-pointer" onClick={onViewProfile}>
       <div className="flex items-start gap-3 mb-3">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
           {expert.name.charAt(0)}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-900 text-sm">{expert.name}</span>
-            {expert.isVerified && <span className="text-blue-500 text-xs">✓</span>}
+            <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{expert.name}</span>
+            {expert.isVerified && <span className="text-xs" style={{ color: '#3b82f6' }}>✓</span>}
           </div>
-          {expert.domain && <span className="text-xs text-slate-500">{expert.domain.icon} {expert.domain.name}</span>}
+          {expert.domain && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{expert.domain.icon} {expert.domain.name}</span>}
         </div>
         <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${expert.isAvailable ? 'bg-green-400' : 'bg-slate-300'}`}
           title={expert.isAvailable ? t('exp_available') : t('exp_busy')} />
       </div>
 
-      <p className="text-xs text-slate-600 line-clamp-2 mb-4 leading-relaxed">{expert.bio}</p>
+      <p className="text-xs line-clamp-2 mb-4 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{expert.bio}</p>
 
       <div className="grid grid-cols-3 gap-2 text-center">
         <div>
-          <div className="text-sm font-bold text-amber-500">⭐{expert.rating.toFixed(1)}</div>
-          <div className="text-xs text-slate-400">{expert.totalReviews} {t('exp_reviews')}</div>
+          <div className="text-sm font-bold" style={{ color: '#f59e0b' }}>⭐{expert.rating.toFixed(1)}</div>
+          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{expert.totalReviews} {t('exp_reviews')}</div>
         </div>
         <div>
-          <div className="text-sm font-bold text-slate-700">{expert.yearsExperience}{t('years')}</div>
-          <div className="text-xs text-slate-400">{t('exp_experience')}</div>
+          <div className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{expert.yearsExperience}{t('years')}</div>
+          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('exp_experience')}</div>
         </div>
         <div>
-          <div className="text-sm font-bold text-green-600">{expert.totalWins}</div>
-          <div className="text-xs text-slate-400">{t('exp_wins')}</div>
+          <div className="text-sm font-bold" style={{ color: '#10b981' }}>{expert.totalWins}</div>
+          <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('exp_wins')}</div>
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ import SearchPage from '@/components/SearchPage';
 import Leaderboard from '@/components/Leaderboard';
 import AdminPanel from '@/components/AdminPanel';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import type { TKey } from '@/lib/i18n/translations';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 
@@ -78,11 +79,11 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-const NAV_GROUPS = [
-  { label: 'Explore', items: ['dashboard', 'search', 'experts', 'consultations', 'leaderboard'] },
-  { label: 'My Space', items: ['ask', 'my-questions', 'rewards', 'notifications'] },
-  { label: 'Expert', items: ['expert-dashboard'] },
-  { label: 'System', items: ['admin'] },
+const NAV_GROUPS: { labelKey: TKey; items: string[] }[] = [
+  { labelKey: 'nav_group_explore',  items: ['dashboard', 'search', 'experts', 'consultations', 'leaderboard'] },
+  { labelKey: 'nav_group_my_space', items: ['ask', 'my-questions', 'rewards', 'notifications'] },
+  { labelKey: 'nav_group_expert',   items: ['expert-dashboard'] },
+  { labelKey: 'nav_group_system',   items: ['admin'] },
 ];
 
 export default function Home() {
@@ -111,17 +112,17 @@ export default function Home() {
   ];
 
   const NAV_LABELS: Record<string, string> = {
-    dashboard: t('nav_dashboard'),
-    search: 'Search',
-    experts: t('nav_experts'),
-    consultations: t('nav_competitions'),
-    leaderboard: 'Leaderboard',
-    ask: t('nav_ask'),
-    'my-questions': 'My Questions',
-    rewards: t('nav_rewards'),
-    notifications: 'Notifications',
-    'expert-dashboard': 'Expert Hub',
-    admin: 'Admin',
+    dashboard:         t('nav_dashboard'),
+    search:            t('nav_search'),
+    experts:           t('nav_experts'),
+    consultations:     t('nav_competitions'),
+    leaderboard:       t('nav_leaderboard'),
+    ask:               t('nav_ask'),
+    'my-questions':    t('nav_my_questions'),
+    rewards:           t('nav_rewards'),
+    notifications:     t('nav_notifications'),
+    'expert-dashboard':t('nav_expert_hub'),
+    admin:             t('nav_admin'),
   };
 
   const visible = NAV.filter(n =>
@@ -190,7 +191,7 @@ export default function Home() {
               <div key={group.label}>
                 <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest"
                   style={{ color: 'var(--text-muted)' }}>
-                  {group.label}
+                  {t(group.labelKey)}
                 </div>
                 <div className="space-y-0.5">
                   {groupItems.map(id => (
@@ -239,12 +240,12 @@ export default function Home() {
                   style={{ color: 'var(--text-muted)' }}
                   onMouseEnter={e => { e.currentTarget.style.color='#f87171'; e.currentTarget.style.background='rgba(248,113,113,0.08)'; }}
                   onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background=''; }}>
-                  Sign out
+                  {t('sign_out')}
                 </button>
               </div>
             ) : (
               <button onClick={() => setShowAuth(true)} className="btn-primary w-full py-2.5">
-                Sign In / Register
+                {t('sign_in_register')}
               </button>
             )
           )}
@@ -282,24 +283,26 @@ function LogoMark() {
 }
 
 function LogoFull() {
+  const { t } = useLang();
   return (
     <div className="flex items-center gap-3">
       <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-base flex-shrink-0 animate-glow"
         style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 0 20px rgba(99,102,241,0.4)' }}>K</div>
       <div>
         <div className="font-bold text-sm leading-tight gradient-text">KnowledgeMarket</div>
-        <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>AI Expert Platform</div>
+        <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('logo_subtitle')}</div>
       </div>
     </div>
   );
 }
 
 function ThemeToggle({ theme, toggle }: { theme: string; toggle: () => void }) {
+  const { t } = useLang();
   return (
     <button onClick={toggle}
       className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200"
       style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+      title={theme === 'dark' ? t('theme_switch_light') : t('theme_switch_dark')}>
       {theme === 'dark' ? (
         <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd"/>

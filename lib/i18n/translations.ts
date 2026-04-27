@@ -13,6 +13,16 @@ export const T = {
   nav_competitions:  { en: 'Competitions',   ar: 'المسابقات',       ku: 'پێشبڕکێکان' },
   nav_experts:       { en: 'Experts',        ar: 'الخبراء',         ku: 'پسپۆڕەکان' },
   nav_rewards:       { en: 'Rewards',        ar: 'المكافآت',        ku: 'خەڵاتەکان' },
+  nav_search:        { en: 'Search',         ar: 'بحث',             ku: 'گەڕان' },
+  nav_leaderboard:   { en: 'Leaderboard',    ar: 'لوحة الصدارة',    ku: 'لیستی پێشەوان' },
+  nav_my_questions:  { en: 'My Questions',   ar: 'أسئلتي',          ku: 'پرسیارەکانم' },
+  nav_notifications: { en: 'Notifications',  ar: 'الإشعارات',       ku: 'ئاگادارییەکان' },
+  nav_expert_hub:    { en: 'Expert Hub',     ar: 'مركز الخبراء',    ku: 'ناوەندی پسپۆڕان' },
+  nav_admin:         { en: 'Admin',          ar: 'الإدارة',         ku: 'بڕێوەبەری' },
+  nav_group_explore: { en: 'Explore',        ar: 'استكشاف',         ku: 'گەڕانەوە' },
+  nav_group_my_space:{ en: 'My Space',       ar: 'مساحتي',          ku: 'شوێنی من' },
+  nav_group_expert:  { en: 'Expert',         ar: 'خبير',            ku: 'پسپۆڕ' },
+  nav_group_system:  { en: 'System',         ar: 'النظام',          ku: 'سیستەم' },
 
   // ── Dashboard ───────────────────────────────────────────────────────────
   dash_title:        { en: 'Dashboard',                  ar: 'لوحة التحكم',               ku: 'داشبۆرد' },
@@ -116,6 +126,13 @@ export const T = {
   demo_user:         { en: 'Demo User', ar: 'مستخدم تجريبي', ku: 'بەکارهێنەری نموونە' },
   pts:               { en: 'pts',     ar: 'نقطة',   ku: 'خاڵ' },
   safety_warning:    { en: '⚠️ Safety Warning', ar: '⚠️ تحذير أمان', ku: '⚠️ ئاگاداری ئایمەنی' },
+  sign_out:          { en: 'Sign out',           ar: 'تسجيل الخروج',                  ku: 'دەرچوون' },
+  sign_in_register:  { en: 'Sign In / Register', ar: 'تسجيل الدخول / التسجيل',        ku: 'چوونەژوورەوە / تۆمارکردن' },
+  logo_subtitle:     { en: 'AI Expert Platform', ar: 'منصة الخبراء الذكية',            ku: 'پلاتفۆرمی پسپۆڕی زیرەک' },
+  theme_switch_light:{ en: 'Switch to light mode', ar: 'التحويل إلى الوضع الفاتح',    ku: 'گۆڕین بۆ دۆخی ڕووناک' },
+  theme_switch_dark: { en: 'Switch to dark mode',  ar: 'التحويل إلى الوضع الداكن',    ku: 'گۆڕین بۆ دۆخی تاریک' },
+  dash_load_error:   { en: 'Failed to load stats', ar: 'فشل تحميل الإحصائيات',        ku: 'ئامارەکان بارنەکران' },
+  exp_found:         { en: 'experts found',        ar: 'خبير متاح',                    ku: 'پسپۆڕ بەردەست' },
 } as const;
 
 export type TKey = keyof typeof T;
