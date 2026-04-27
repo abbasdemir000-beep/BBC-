@@ -67,7 +67,7 @@ export default function ExpertDashboard() {
 
   if (loading) return (
     <div className="p-8 space-y-4 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-32 bg-slate-200 rounded-2xl" />)}
+      {[1, 2, 3].map(i => <div key={i} className="h-32 rounded-2xl" style={{ background: 'var(--surface-2)' }} />)}
     </div>
   );
 
@@ -97,14 +97,14 @@ export default function ExpertDashboard() {
       )}
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Expert Dashboard</h1>
-        <p className="text-slate-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Expert Dashboard</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
           Questions matched to your expertise — {expert?.domain?.name}
         </p>
       </div>
 
       {items.length === 0 ? (
-        <div className="card text-center py-16 text-slate-400">
+        <div className="card text-center py-16" style={{ color: 'var(--text-muted)' }}>
           <div className="text-4xl mb-3">📭</div>
           <p className="font-medium">No targeted questions yet</p>
           <p className="text-sm mt-1">You'll be notified when questions match your domain</p>
@@ -146,88 +146,83 @@ function TargetedCard({ item, processing, onAccept, onOpenChat, onTakeExam, onSu
   const canSubmitAnswer = accepted && !mySubmission;
 
   return (
-    <div className="card border border-slate-100 hover:border-brand-200 transition-all">
+    <div className="card transition-all">
       <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg,#c2714f,#d4a853)' }}>
           #{rank}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <h3 className="font-semibold text-slate-900 leading-snug">{consultation.title}</h3>
-              <p className="text-xs text-slate-500 mt-1 line-clamp-2">{consultation.description}</p>
+              <h3 className="font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>{consultation.title}</h3>
+              <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{consultation.description}</p>
             </div>
             <div className="flex-shrink-0 text-right">
-              <div className="text-xs text-slate-500">Match score</div>
-              <div className="text-lg font-bold text-brand-600">{(similarityScore * 100).toFixed(0)}%</div>
+              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>Match score</div>
+              <div className="text-lg font-bold" style={{ color: 'var(--accent)' }}>{(similarityScore * 100).toFixed(0)}%</div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mt-3">
             {consultation.domain && (
-              <span className="inline-flex items-center gap-1 text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
+                style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
                 {consultation.domain.icon} {consultation.domain.name}
               </span>
             )}
-            <span className="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-lg">{consultation.difficulty}</span>
-            <span className="text-xs text-slate-400">by Anonymous</span>
+            <span className="text-xs px-2 py-1 rounded-lg"
+              style={{ background: 'rgba(212,168,83,0.1)', color: '#9a7a2e' }}>{consultation.difficulty}</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>by Anonymous</span>
           </div>
 
           {mySubmission && (
-            <div className="mt-3 p-3 bg-slate-50 rounded-xl flex items-center gap-4 text-sm">
-              <span className="text-slate-600 font-medium">My submission:</span>
-              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg">{mySubmission.status}</span>
-              {mySubmission.aiScore != null && <span className="text-xs text-slate-500">AI: {mySubmission.aiScore}</span>}
-              {mySubmission.examScore != null && <span className="text-xs text-slate-500">Exam: {mySubmission.examScore}</span>}
-              {mySubmission.finalScore != null && <span className="text-xs font-bold text-green-700">Final: {mySubmission.finalScore}</span>}
+            <div className="mt-3 p-3 rounded-xl flex items-center gap-4 text-sm"
+              style={{ background: 'var(--surface-2)' }}>
+              <span className="font-medium" style={{ color: 'var(--text-secondary)' }}>My submission:</span>
+              <span className="text-xs px-2 py-0.5 rounded-lg"
+                style={{ background: 'rgba(56,189,248,0.1)', color: '#38bdf8' }}>{mySubmission.status}</span>
+              {mySubmission.aiScore != null && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>AI: {mySubmission.aiScore}</span>}
+              {mySubmission.examScore != null && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Exam: {mySubmission.examScore}</span>}
+              {mySubmission.finalScore != null && <span className="text-xs font-bold" style={{ color: '#34d399' }}>Final: {mySubmission.finalScore}</span>}
             </div>
           )}
 
           <div className="flex items-center gap-3 mt-4">
             {accepted === null ? (
               <>
-                <button
-                  onClick={() => onAccept(true)}
-                  disabled={processing}
-                  className="px-4 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold hover:bg-green-600 disabled:opacity-60 transition-all"
-                >
+                <button onClick={() => onAccept(true)} disabled={processing}
+                  className="px-4 py-2 text-white rounded-xl text-sm font-semibold disabled:opacity-60 transition-all"
+                  style={{ background: '#22c55e' }}>
                   ✓ Accept
                 </button>
-                <button
-                  onClick={() => onAccept(false)}
-                  disabled={processing}
-                  className="px-4 py-2 bg-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-300 disabled:opacity-60 transition-all"
-                >
+                <button onClick={() => onAccept(false)} disabled={processing}
+                  className="btn-secondary px-4 py-2 text-sm disabled:opacity-60">
                   Decline
                 </button>
               </>
             ) : accepted ? (
-              <span className="text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-xl font-medium">✓ Accepted</span>
+              <span className="text-xs px-3 py-1.5 rounded-xl font-medium"
+                style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>✓ Accepted</span>
             ) : (
-              <span className="text-xs bg-slate-100 text-slate-500 px-3 py-1.5 rounded-xl font-medium">Declined</span>
+              <span className="text-xs px-3 py-1.5 rounded-xl font-medium"
+                style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>Declined</span>
             )}
 
             {canSubmitAnswer && (
-              <button
-                onClick={onSubmitAnswer}
-                className="ms-auto px-4 py-2 bg-purple-500 text-white rounded-xl text-sm font-semibold hover:bg-purple-600 transition-all flex items-center gap-2"
-              >
+              <button onClick={onSubmitAnswer} className="btn-primary ms-auto px-4 py-2 text-sm flex items-center gap-2">
                 ✍️ Submit Answer
               </button>
             )}
             {canTakeExam && (
-              <button
-                onClick={onTakeExam}
-                className="ms-auto px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-semibold hover:bg-amber-600 transition-all flex items-center gap-2"
-              >
+              <button onClick={onTakeExam}
+                className="ms-auto px-4 py-2 text-white rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+                style={{ background: '#f59e0b' }}>
                 🧪 Take Exam
               </button>
             )}
             {hasChatAccess && (
-              <button
-                onClick={onOpenChat}
-                className="ms-auto px-4 py-2 bg-brand-500 text-white rounded-xl text-sm font-semibold hover:bg-brand-600 transition-all flex items-center gap-2"
-              >
+              <button onClick={onOpenChat} className="btn-primary ms-auto px-4 py-2 text-sm flex items-center gap-2">
                 💬 Open Chat
               </button>
             )}

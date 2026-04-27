@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@/lib/auth/AuthContext';
+import AnswerSubmitModal from './AnswerSubmitModal';
 
 interface Consultation {
   id: string; title: string; description: string; status: string;
@@ -28,7 +30,10 @@ export default function ConsultationsBoard() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
+  const [activeSubmit, setActiveSubmit] = useState<{ id: string; title: string } | null>(null);
   const { t, dir } = useLang();
+  const { user } = useAuth();
+  const isExpert = user?.role === 'expert' || user?.role === 'admin';
 
   const load = useCallback(() => {
     setLoading(true);
@@ -52,6 +57,14 @@ export default function ConsultationsBoard() {
 
   return (
     <div className="p-8 space-y-6" dir={dir}>
+      {activeSubmit && (
+        <AnswerSubmitModal
+          consultationId={activeSubmit.id}
+          consultationTitle={activeSubmit.title}
+          onClose={() => setActiveSubmit(null)}
+          onSubmitted={() => { setActiveSubmit(null); load(); }}
+        />
+      )}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">{t('comp_title')}</h1>
         <p className="text-slate-500 text-sm mt-1">{total} {t('comp_title').toLowerCase()}</p>
@@ -70,34 +83,45 @@ export default function ConsultationsBoard() {
         <div className="space-y-3 animate-pulse">{[...Array(5)].map((_, i) => <div key={i} className="h-28 bg-slate-200 rounded-2xl" />)}</div>
       ) : (
         <div className="space-y-3">
-          {items.map(c => (
-            <div key={c.id} className="card hover:shadow-md transition-all cursor-pointer">
-              <div className="flex items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    {c.domain && <span className="text-sm">{c.domain.icon}</span>}
-                    <h3 className="font-semibold text-slate-900 text-sm line-clamp-1">{c.title}</h3>
+          {items.map(c => {
+            const canAnswer = isExpert && ['active', 'routing', 'pending'].includes(c.status);
+            return (
+              <div key={c.id} className="card hover:shadow-md transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {c.domain && <span className="text-sm">{c.domain.icon}</span>}
+                      <h3 className="font-semibold text-slate-900 text-sm line-clamp-1">{c.title}</h3>
+                    </div>
+                    <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">{c.description}</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {c.domain && <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{c.domain.name}</span>}
+                      {c.difficulty && <span className="text-xs text-slate-500 capitalize">{c.difficulty}</span>}
+                      <span className={`text-xs font-medium ${URGENCY_COLORS[c.urgency]}`}>
+                        {c.urgency === 'critical' ? '🔴' : c.urgency === 'high' ? '🟡' : '🔵'} {c.urgency}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">{c.description}</p>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {c.domain && <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{c.domain.name}</span>}
-                    {c.difficulty && <span className="text-xs text-slate-500 capitalize">{c.difficulty}</span>}
-                    <span className={`text-xs font-medium ${URGENCY_COLORS[c.urgency]}`}>
-                      {c.urgency === 'critical' ? '🔴' : c.urgency === 'high' ? '🟡' : '🔵'} {c.urgency}
-                    </span>
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <span className={STATUS_MAP[c.status]?.cls ?? 'badge-gray'}>{c.status}</span>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-amber-500">🏆 {c.prizePoints}</div>
+                      <div className="text-xs text-slate-400">{t('comp_points')}</div>
+                    </div>
+                    <div className="text-xs text-slate-500">{c._count.submissions} {t('comp_answers')}</div>
+                    {canAnswer && (
+                      <button
+                        onClick={() => setActiveSubmit({ id: c.id, title: c.title })}
+                        className="btn-primary px-3 py-1.5 text-xs mt-1"
+                      >
+                        ✍️ {t('comp_answer')}
+                      </button>
+                    )}
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                  <span className={STATUS_MAP[c.status]?.cls ?? 'badge-gray'}>{c.status}</span>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-amber-500">🏆 {c.prizePoints}</div>
-                    <div className="text-xs text-slate-400">{t('comp_points')}</div>
-                  </div>
-                  <div className="text-xs text-slate-500">{c._count.submissions} {t('comp_answers')}</div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {items.length === 0 && (
             <div className="text-center py-16 text-slate-400">
               <div className="text-4xl mb-3">🔍</div>

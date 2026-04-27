@@ -112,6 +112,7 @@ export const T = {
   comp_done:         { en: 'Done',                   ar: 'مكتمل',           ku: 'تەواو' },
   comp_answers:      { en: 'answers',                ar: 'إجابات',          ku: 'وەڵام' },
   comp_points:       { en: 'points',                 ar: 'نقاط',            ku: 'خاڵ' },
+  comp_answer:       { en: 'Answer',                 ar: 'أجب',             ku: 'وەڵامبدەرەوە' },
 
   // ── Rewards ─────────────────────────────────────────────────────────────
   rew_title:         { en: 'Rewards & Points',      ar: 'المكافآت والنقاط',    ku: 'خەڵات و خاڵەکان' },
