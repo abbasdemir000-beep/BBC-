@@ -165,7 +165,7 @@ export default function Home() {
           {unreadNotifications > 0 && (
             <button onClick={() => navigate('notifications')}
               className="w-6 h-6 rounded-full text-white text-xs flex items-center justify-center font-bold"
-              style={{ background: 'linear-gradient(135deg,#f43f5e,#ec4899)' }}>
+              style={{ background: 'linear-gradient(135deg,#dc2626,#f97316)' }}>
               {unreadNotifications > 9 ? '9+' : unreadNotifications}
             </button>
           )}
@@ -220,7 +220,7 @@ export default function Home() {
                 <div className="flex items-center gap-3 px-3 py-2 rounded-xl"
                   style={{ background: 'var(--surface-2)' }}>
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                    style={{ background: 'linear-gradient(135deg,#c2714f,#d4a853)' }}>
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -230,7 +230,7 @@ export default function Home() {
                   {unreadNotifications > 0 && (
                     <button onClick={() => navigate('notifications')}
                       className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg,#f43f5e,#ec4899)' }}>
+                      style={{ background: 'linear-gradient(135deg,#dc2626,#f97316)' }}>
                       {unreadNotifications > 9 ? '9+' : unreadNotifications}
                     </button>
                   )}
@@ -276,7 +276,7 @@ function LogoMark() {
   return (
     <div className="flex items-center gap-2.5">
       <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-sm"
-        style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>K</div>
+        style={{ background: 'linear-gradient(135deg,#c2714f,#d4a853)' }}>K</div>
       <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>KnowledgeMarket</span>
     </div>
   );
@@ -287,7 +287,7 @@ function LogoFull() {
   return (
     <div className="flex items-center gap-3">
       <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-base flex-shrink-0 animate-glow"
-        style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 0 20px rgba(99,102,241,0.4)' }}>K</div>
+        style={{ background: 'linear-gradient(135deg,#c2714f,#d4a853)', boxShadow: '0 0 20px rgba(194,113,79,0.4)' }}>K</div>
       <div>
         <div className="font-bold text-sm leading-tight gradient-text">KnowledgeMarket</div>
         <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('logo_subtitle')}</div>
@@ -324,10 +324,10 @@ function NavItem({ id, label, icon, active, badge, onClick }: {
     <button onClick={onClick}
       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-start"
       style={active ? {
-        background: 'rgba(99,102,241,0.12)',
+        background: 'rgba(194,113,79,0.12)',
         color: 'var(--accent)',
-        border: '1px solid rgba(99,102,241,0.2)',
-        boxShadow: '0 0 16px rgba(99,102,241,0.08)',
+        border: '1px solid rgba(194,113,79,0.2)',
+        boxShadow: '0 0 16px rgba(194,113,79,0.08)',
       } : {
         color: 'var(--text-secondary)',
         border: '1px solid transparent',
@@ -336,7 +336,7 @@ function NavItem({ id, label, icon, active, badge, onClick }: {
       <span className="flex-1 truncate">{label}</span>
       {badge !== undefined && badge > 0 && (
         <span className="w-5 h-5 rounded-full text-white text-[10px] flex items-center justify-center font-bold flex-shrink-0"
-          style={{ background: 'linear-gradient(135deg,#f43f5e,#ec4899)' }}>
+          style={{ background: 'linear-gradient(135deg,#dc2626,#f97316)' }}>
           {badge > 9 ? '9+' : badge}
         </span>
       )}
