@@ -19,6 +19,7 @@ export const T = {
   nav_notifications: { en: 'Notifications',  ar: 'الإشعارات',       ku: 'ئاگادارییەکان' },
   nav_expert_hub:    { en: 'Expert Hub',     ar: 'مركز الخبراء',    ku: 'ناوەندی پسپۆڕ' },
   nav_admin:         { en: 'Admin',          ar: 'الإدارة',         ku: 'بەڕێوەبردن' },
+  nav_profile:       { en: 'My Profile',     ar: 'ملفي الشخصي',     ku: 'پرۆفایلەکەم' },
 
   // ── Navigation groups ───────────────────────────────────────────────────
   nav_group_explore:  { en: 'Explore',  ar: 'استكشاف',  ku: 'گەڕان' },
