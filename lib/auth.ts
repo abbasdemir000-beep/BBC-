@@ -2,9 +2,9 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
 
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? 'km-secret-key-change-in-production-32chars'
-);
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) throw new Error('JWT_SECRET environment variable is required');
+const SECRET = new TextEncoder().encode(jwtSecret);
 const COOKIE = 'km_token';
 const EXPIRES = 7 * 24 * 60 * 60; // 7 days
 
