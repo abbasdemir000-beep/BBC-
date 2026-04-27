@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { smartGenerateOpenExam } from '@/lib/ai/smartEngine';
+import { aiGenerateExam } from '@/lib/ai/aiEngine';
 import { z } from 'zod';
 
 const GenerateSchema = z.object({ consultationId: z.string() });
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const domain = consultation.aiAnalysis?.detectedDomain ?? consultation.domain?.slug ?? 'general';
   const difficulty = consultation.difficulty ?? 'intermediate';
 
-  const generated = smartGenerateOpenExam(topic, domain, difficulty);
+  const generated = await aiGenerateExam(topic, domain, difficulty, consultation.title, consultation.description ?? '');
 
   const exam = await prisma.exam.upsert({
     where: { consultationId },

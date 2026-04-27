@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { smartClassify, smartEmbedding } from '@/lib/ai/smartEngine';
+import { smartEmbedding } from '@/lib/ai/smartEngine';
+import { aiClassify } from '@/lib/ai/aiEngine';
 import { routeToExperts } from '@/lib/ai/router';
 import { z } from 'zod';
 
@@ -20,8 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(err) }, { status: 422 });
   }
 
-  // Classify with smart rule-based engine (zero API calls)
-  const classification = smartClassify(text);
+  const classification = await aiClassify(text);
 
   // Generate deterministic embedding
   const embedding = smartEmbedding(text);
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       safetyFlags: JSON.stringify(classification.safetyFlags),
       isSafe: classification.isSafe,
       processingTimeMs: Date.now() - start,
-      modelUsed: 'smart-engine-v1',
+      modelUsed: process.env.OPENROUTER_API_KEY ? (process.env.OPENROUTER_MODEL ?? 'meta-llama/llama-3.3-70b-instruct') : 'smart-engine-v1',
     },
     create: {
       consultationId,
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       safetyFlags: JSON.stringify(classification.safetyFlags),
       isSafe: classification.isSafe,
       processingTimeMs: Date.now() - start,
-      modelUsed: 'smart-engine-v1',
+      modelUsed: process.env.OPENROUTER_API_KEY ? (process.env.OPENROUTER_MODEL ?? 'meta-llama/llama-3.3-70b-instruct') : 'smart-engine-v1',
     },
   });
 

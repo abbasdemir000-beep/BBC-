@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { smartEvaluate } from '@/lib/ai/smartEngine';
+import { aiEvaluate } from '@/lib/ai/aiEngine';
 import { runAntiCheat } from '@/lib/ai/antiCheat';
 import { calcFinalScore } from '@/lib/utils';
 
@@ -68,9 +68,8 @@ export async function POST(req: NextRequest) {
     data.timeSpentSeconds
   );
 
-  // Smart AI evaluation (rule-based, no API needed)
   const domainSlug = consultation.domain?.slug ?? consultation.aiAnalysis?.detectedDomain ?? 'general';
-  const evaluation = smartEvaluate(consultation.description, data.content, domainSlug);
+  const evaluation = await aiEvaluate(consultation.description, data.content, domainSlug);
 
   // Create submission
   const submission = await prisma.submission.create({
