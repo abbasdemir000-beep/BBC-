@@ -30,8 +30,8 @@ export default function ExpertsDirectory() {
   const load = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams({ page: String(page), limit: '12' });
-    if (domain) params.set('domain', domain);
-    if (search) params.set('search', search);
+    if (domain)   params.set('domain', domain);
+    if (search)   params.set('search', search);
     if (verified) params.set('verified', 'true');
     fetch(`/api/experts?${params}`)
       .then(r => r.json())
@@ -42,80 +42,129 @@ export default function ExpertsDirectory() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <div className="p-8 space-y-6" dir={dir}>
+    <div className="max-w-7xl mx-auto px-8 py-12" dir={dir}>
       {selectedExpert && <ExpertProfileModal expertId={selectedExpert} onClose={() => setSelectedExpert(null)} />}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">{t('exp_title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{total} {t('exp_title').toLowerCase()}</p>
+
+      {/* Header */}
+      <div className="mb-10">
+        <p className="tag-editorial mb-3">Directory</p>
+        <h1 className="font-display text-4xl font-light italic mb-2" style={{ color: 'var(--ink)' }}>
+          {t('exp_title')}
+        </h1>
+        <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>{total} verified experts across {domains.length} domains</p>
       </div>
 
-      <div className="flex gap-3 flex-wrap">
-        <input className="input w-64" placeholder={t('exp_search')} value={search}
+      {/* Filters */}
+      <div className="flex gap-4 mb-8 pb-6 flex-wrap" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <input className="input-editorial w-60" placeholder={t('exp_search')} value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }} />
-        <select className="input w-52" value={domain} onChange={e => { setDomain(e.target.value); setPage(1); }}>
+        <select className="input-editorial w-52" value={domain} onChange={e => { setDomain(e.target.value); setPage(1); }}
+          style={{ cursor: 'pointer' }}>
           <option value="">{t('exp_all_domains')}</option>
           {domains.map(d => <option key={d.slug} value={d.slug}>{d.icon} {d.name}</option>)}
         </select>
-        <label className="flex items-center gap-2 cursor-pointer px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50">
-          <input type="checkbox" className="rounded" checked={verified} onChange={e => { setVerified(e.target.checked); setPage(1); }} />
+        <label className="flex items-center gap-2 cursor-pointer text-xs uppercase tracking-widest"
+          style={{ color: verified ? 'var(--ink)' : 'var(--ink-muted)', letterSpacing: '0.08em' }}>
+          <input type="checkbox" className="accent-ink" checked={verified}
+            onChange={e => { setVerified(e.target.checked); setPage(1); }} />
           {t('exp_verified')}
         </label>
       </div>
 
+      {/* 2-col portrait grid */}
       {loading ? (
-        <div className="grid grid-cols-3 gap-4 animate-pulse">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-48 bg-slate-200 rounded-2xl" />)}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-px" style={{ border: '1px solid var(--border-subtle)' }}>
+          {[...Array(6)].map((_, i) => <div key={i} className="h-48 skeleton" />)}
+        </div>
+      ) : experts.length === 0 ? (
+        <div className="text-center py-20" style={{ color: 'var(--ink-muted)' }}>
+          <p className="font-display text-2xl italic mb-2">No experts found</p>
+          <p className="text-sm">Try adjusting your filters</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
-          {experts.map(expert => <ExpertCard key={expert.id} expert={expert} onViewProfile={() => setSelectedExpert(expert.id)} />)}
+        <div className="grid grid-cols-1 md:grid-cols-2" style={{ border: '1px solid var(--border-subtle)' }}>
+          {experts.map((expert, i) => (
+            <ExpertCard key={expert.id} expert={expert} index={i} totalCount={experts.length}
+              onViewProfile={() => setSelectedExpert(expert.id)} />
+          ))}
         </div>
       )}
 
+      {/* Pagination */}
       {pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary disabled:opacity-50">{t('prev')}</button>
-          <span className="text-sm text-slate-600">{t('page')} {page} {t('of')} {pages}</span>
-          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages} className="btn-secondary disabled:opacity-50">{t('next')}</button>
+        <div className="flex items-center justify-center gap-6 mt-10">
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+            className="btn-editorial-outline py-2 px-5 disabled:opacity-30">
+            {t('prev')}
+          </button>
+          <span className="section-label">{t('page')} {page} {t('of')} {pages}</span>
+          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
+            className="btn-editorial-outline py-2 px-5 disabled:opacity-30">
+            {t('next')}
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-function ExpertCard({ expert, onViewProfile }: { expert: Expert; onViewProfile: () => void }) {
+function ExpertCard({ expert, index, totalCount, onViewProfile }: {
+  expert: Expert; index: number; totalCount: number; onViewProfile: () => void;
+}) {
   const { t } = useLang();
+  const col = index % 2;
+  const row = Math.floor(index / 2);
+  const isLastRow = index >= totalCount - (totalCount % 2 === 0 ? 2 : 1);
+
   return (
-    <div className="card hover:shadow-md transition-shadow cursor-pointer" onClick={onViewProfile}>
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
-          {expert.name.charAt(0)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-900 text-sm">{expert.name}</span>
-            {expert.isVerified && <span className="text-blue-500 text-xs">✓</span>}
-          </div>
-          {expert.domain && <span className="text-xs text-slate-500">{expert.domain.icon} {expert.domain.name}</span>}
-        </div>
-        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${expert.isAvailable ? 'bg-green-400' : 'bg-slate-300'}`}
-          title={expert.isAvailable ? t('exp_available') : t('exp_busy')} />
+    <div className="flex gap-5 p-6 cursor-pointer group transition-colors"
+      style={{
+        borderRight:  col === 0 ? '1px solid var(--border-subtle)' : undefined,
+        borderBottom: !isLastRow ? '1px solid var(--border-subtle)' : undefined,
+      }}
+      onClick={onViewProfile}
+      onMouseEnter={e => { e.currentTarget.style.background = 'var(--paper-warm)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = ''; }}>
+
+      {/* Ink initials block */}
+      <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center text-lg font-semibold"
+        style={{ background: 'var(--ink)', color: 'var(--paper)' }}>
+        {expert.name.charAt(0).toUpperCase()}
       </div>
 
-      <p className="text-xs text-slate-600 line-clamp-2 mb-4 leading-relaxed">{expert.bio}</p>
+      <div className="flex-1 min-w-0">
+        {/* Name row */}
+        <div className="flex items-start justify-between gap-2 mb-1">
+          <div>
+            <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{expert.name}</span>
+            {expert.isVerified && (
+              <span className="ms-2 badge-editorial" style={{ color: 'var(--accent)', fontSize: '8px' }}>Verified</span>
+            )}
+          </div>
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${expert.isAvailable ? 'bg-green-500' : 'bg-neutral-300'}`}
+            title={expert.isAvailable ? t('exp_available') : t('exp_busy')} />
+        </div>
 
-      <div className="grid grid-cols-3 gap-2 text-center">
-        <div>
-          <div className="text-sm font-bold text-amber-500">⭐{expert.rating.toFixed(1)}</div>
-          <div className="text-xs text-slate-400">{expert.totalReviews} {t('exp_reviews')}</div>
-        </div>
-        <div>
-          <div className="text-sm font-bold text-slate-700">{expert.yearsExperience}{t('years')}</div>
-          <div className="text-xs text-slate-400">{t('exp_experience')}</div>
-        </div>
-        <div>
-          <div className="text-sm font-bold text-green-600">{expert.totalWins}</div>
-          <div className="text-xs text-slate-400">{t('exp_wins')}</div>
+        {expert.domain && (
+          <div className="tag-editorial mb-2">{expert.domain.icon} {expert.domain.name}</div>
+        )}
+
+        <p className="text-xs leading-relaxed line-clamp-2 mb-3" style={{ color: 'var(--ink-muted)' }}>{expert.bio}</p>
+
+        {/* Stats row */}
+        <div className="flex items-center gap-5">
+          <div>
+            <span className="text-sm font-semibold" style={{ color: 'var(--accent)' }}>{expert.rating.toFixed(1)}</span>
+            <span className="ms-1 section-label" style={{ fontSize: '9px' }}>/{expert.totalReviews} reviews</span>
+          </div>
+          <div>
+            <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{expert.yearsExperience}</span>
+            <span className="ms-1 section-label" style={{ fontSize: '9px' }}>{t('years')} exp</span>
+          </div>
+          <div>
+            <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{expert.totalWins}</span>
+            <span className="ms-1 section-label" style={{ fontSize: '9px' }}>{t('exp_wins')}</span>
+          </div>
         </div>
       </div>
     </div>

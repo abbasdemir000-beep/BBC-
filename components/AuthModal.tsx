@@ -31,7 +31,7 @@ const UI_TEXT: Record<Lang, {
   en: {
     chooseApp: 'Choose Your Language', chooseAppSub: 'Select your preferred language to continue',
     continue: 'Continue', signIn: 'Sign In', register: 'Register',
-    welcome: 'Welcome back!', joinUs: 'Join the knowledge marketplace',
+    welcome: 'Welcome back', joinUs: 'Join the knowledge marketplace',
     fullName: 'Full Name', email: 'Email Address', password: 'Password',
     accountType: 'Account Type', userDesc: 'Ask questions & get expert answers',
     expertDesc: 'Answer questions & earn rewards',
@@ -44,9 +44,9 @@ const UI_TEXT: Record<Lang, {
   ar: {
     chooseApp: 'اختر لغتك', chooseAppSub: 'اختر لغتك المفضلة للمتابعة',
     continue: 'متابعة', signIn: 'تسجيل الدخول', register: 'إنشاء حساب',
-    welcome: 'مرحباً بعودتك!', joinUs: 'انضم إلى سوق المعرفة',
+    welcome: 'مرحباً بعودتك', joinUs: 'انضم إلى سوق المعرفة',
     fullName: 'الاسم الكامل', email: 'البريد الإلكتروني', password: 'كلمة المرور',
-    accountType: 'نوع الحساب', userDesc: 'اطرح أسئلة واحصل على إجابات من الخبراء',
+    accountType: 'نوع الحساب', userDesc: 'اطرح أسئلة واحصل على إجابات',
     expertDesc: 'أجب على الأسئلة واكسب مكافآت',
     domain: 'مجال التخصص', bio: 'السيرة المهنية',
     examLang: 'لغة الامتحان', examLangSub: 'اللغة المستخدمة في امتحان التأهل',
@@ -57,9 +57,9 @@ const UI_TEXT: Record<Lang, {
   ku: {
     chooseApp: 'زمانەکەت هەڵبژێرە', chooseAppSub: 'زمانی دڵخوازت هەڵبژێرە بۆ بەردەوامبوون',
     continue: 'بەردەوام بە', signIn: 'چوونە ژوورەوە', register: 'تۆمارکردن',
-    welcome: 'بەخێر بێیتەوە!', joinUs: 'بەشداری بازاڕی زانستدا بکە',
+    welcome: 'بەخێر بێیتەوە', joinUs: 'بەشداری بازاڕی زانستدا بکە',
     fullName: 'ناوی تەواو', email: 'ئیمەیڵ', password: 'وشەی نهێنی',
-    accountType: 'جۆری هەژمار', userDesc: 'پرسیار بکە و وەڵامی پسپۆڕەکان وەربگرە',
+    accountType: 'جۆری هەژمار', userDesc: 'پرسیار بکە و وەڵام وەربگرە',
     expertDesc: 'وەڵام بدەرەوە و خەڵات بەدەست بهێنە',
     domain: 'بواری پسپۆڕایەتی', bio: 'ژیاننامەی پیشەیی',
     examLang: 'زمانی تاقیکردنەوە', examLangSub: 'زمانی تاقیکردنەوەی پێشکەوتوو',
@@ -89,17 +89,12 @@ export default function AuthModal({ onClose }: Props) {
   const ui = UI_TEXT[appLang];
   const isRTL = LANGUAGES[appLang].dir === 'rtl';
 
-  function selectAppLang(l: Lang) {
-    setAppLang(l);
-    setLang(l); // preview immediately
-  }
+  function selectAppLang(l: Lang) { setAppLang(l); setLang(l); }
 
   function toggleTextLang(l: Lang) {
     setForm(f => {
       const has = f.textLanguages.includes(l);
-      const next = has
-        ? f.textLanguages.filter(x => x !== l)
-        : [...f.textLanguages, l];
+      const next = has ? f.textLanguages.filter(x => x !== l) : [...f.textLanguages, l];
       return { ...f, textLanguages: next.length ? next : [l] };
     });
   }
@@ -125,77 +120,78 @@ export default function AuthModal({ onClose }: Props) {
   }
 
   return (
-    <div className="modal-backdrop animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="modal-panel w-full max-w-md mx-4 animate-scale-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(6px)' }}
+      dir={isRTL ? 'rtl' : 'ltr'}
+      onClick={onClose}>
+      <div className="w-full max-w-md animate-scale-in overflow-hidden"
+        style={{ background: 'var(--paper)', border: '1px solid var(--border-medium)', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}
+        onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="modal-header">
+        <div className="px-6 py-5 flex items-center justify-between" style={{ background: 'var(--ink)' }}>
           <div>
-            <h2 className="text-white font-bold text-lg">
+            <h2 className="font-display text-lg italic font-light" style={{ color: 'var(--paper)' }}>
               {step === 'language' ? ui.chooseApp : (mode === 'login' ? ui.signIn : ui.register)}
             </h2>
-            <p className="text-white/70 text-sm mt-0.5">
+            <p className="text-xs mt-0.5" style={{ color: 'rgba(240,237,232,0.55)' }}>
               {step === 'language' ? ui.chooseAppSub : (mode === 'login' ? ui.welcome : ui.joinUs)}
             </p>
           </div>
-          <button onClick={onClose} className="text-white/60 hover:text-white text-2xl leading-none transition-colors">×</button>
+          <button onClick={onClose} className="text-2xl leading-none transition-opacity hover:opacity-60"
+            style={{ color: 'var(--paper)' }}>×</button>
         </div>
 
-        {/* Mode tabs (only when on form step) */}
+        {/* Mode tabs */}
         {step === 'form' && (
-          <div className="flex gap-1 p-3 border-b" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
             {(['login', 'register'] as Mode[]).map(m => (
               <button key={m} onClick={() => { setMode(m); setError(''); }}
-                className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all duration-200"
+                className="flex-1 py-3 text-xs uppercase tracking-widest font-medium transition-colors"
                 style={mode === m
-                  ? { background: 'var(--accent)', color: '#fff', boxShadow: '0 4px 12px var(--accent-glow)' }
-                  : { color: 'var(--text-muted)', background: 'var(--surface-2)' }}>
+                  ? { color: 'var(--ink)', borderBottom: '2px solid var(--ink)' }
+                  : { color: 'var(--ink-muted)' }}>
                 {m === 'login' ? ui.signIn : ui.register}
               </button>
             ))}
           </div>
         )}
 
-        <div className="p-6">
-          {/* ── Step 1: Language picker ── */}
+        <div className="p-6 overflow-y-auto max-h-[70vh]">
+          {/* Language step */}
           {step === 'language' && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="grid grid-cols-3 gap-3">
                 {LANG_OPTIONS.map(l => (
                   <button key={l.code} onClick={() => selectAppLang(l.code)}
-                    className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all duration-200 font-semibold"
+                    className="flex flex-col items-center gap-2 p-4 transition-colors"
                     style={appLang === l.code
-                      ? { borderColor: 'var(--accent)', background: 'var(--accent-glow)', color: 'var(--accent)', boxShadow: '0 0 20px var(--accent-glow)' }
-                      : { borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'var(--surface-2)' }}>
+                      ? { background: 'var(--ink)', color: 'var(--paper)', border: '1px solid var(--ink)' }
+                      : { background: 'transparent', color: 'var(--ink-muted)', border: '1px solid var(--border-medium)' }}>
                     <span className="text-3xl">{l.flag}</span>
-                    <span className="text-xs text-center leading-tight">{l.native}</span>
-                    {appLang === l.code && (
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px]"
-                        style={{ background: 'var(--accent)' }}>✓</div>
-                    )}
+                    <span className="text-xs font-medium">{l.native}</span>
                   </button>
                 ))}
               </div>
-              <button onClick={() => setStep('form')} className="btn-primary w-full py-3 text-sm">
+              <button onClick={() => setStep('form')} className="btn-editorial w-full py-3">
                 {ui.continue} →
               </button>
             </div>
           )}
 
-          {/* ── Step 2: Form ── */}
+          {/* Form step */}
           {step === 'form' && (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* App language badge + change link */}
-              <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs"
-                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
-                <span style={{ color: 'var(--text-muted)' }}>{ui.appLang}:</span>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Language badge */}
+              <div className="flex items-center justify-between py-2 text-xs"
+                style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <span style={{ color: 'var(--ink-muted)' }}>{ui.appLang}</span>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  <span style={{ color: 'var(--ink)' }}>
                     {LANG_OPTIONS.find(l => l.code === appLang)?.flag} {LANG_OPTIONS.find(l => l.code === appLang)?.native}
                   </span>
                   <button type="button" onClick={() => setStep('language')}
-                    className="text-xs font-semibold transition-colors"
-                    style={{ color: 'var(--accent)' }}>
+                    className="uppercase tracking-widest text-xs" style={{ color: 'var(--accent)', fontSize: '9px' }}>
                     {ui.changeLang}
                   </button>
                 </div>
@@ -207,68 +203,62 @@ export default function AuthModal({ onClose }: Props) {
 
               {mode === 'register' && (
                 <>
-                  {/* Role picker */}
                   <div>
-                    <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>{ui.accountType}</label>
+                    <label className="section-label block mb-3">{ui.accountType}</label>
                     <div className="grid grid-cols-2 gap-3">
                       {(['user', 'expert'] as const).map(r => (
                         <button key={r} type="button" onClick={() => setForm(f => ({ ...f, role: r }))}
-                          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200"
+                          className="flex flex-col items-center gap-2 p-4 text-xs font-medium transition-colors"
                           style={form.role === r
-                            ? { borderColor: 'var(--accent)', background: 'var(--accent-glow)', color: 'var(--accent)' }
-                            : { borderColor: 'var(--border)', color: 'var(--text-muted)', background: 'var(--surface-2)' }}>
+                            ? { background: 'var(--ink)', color: 'var(--paper)', border: '1px solid var(--ink)' }
+                            : { background: 'transparent', color: 'var(--ink-muted)', border: '1px solid var(--border-medium)' }}>
                           <span className="text-2xl">{r === 'user' ? '🙋' : '🧠'}</span>
-                          <span className="text-xs font-bold capitalize">{r === 'user' ? ui.userDesc.split('&')[0] : ui.expertDesc.split('&')[0]}</span>
+                          <span className="uppercase tracking-wider" style={{ fontSize: '9px' }}>{r}</span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Expert-only fields */}
                   {form.role === 'expert' && (
                     <>
                       <FormField label={ui.domain} value={form.domainSlug} onChange={v => setForm(f => ({ ...f, domainSlug: v }))} placeholder="medicine, law, computer-science…" />
                       <FormField label={ui.bio} value={form.bio} onChange={v => setForm(f => ({ ...f, bio: v }))} placeholder="Brief professional description" />
 
-                      {/* Exam language */}
                       <div>
-                        <label className="block text-xs font-semibold mb-0.5" style={{ color: 'var(--text-secondary)' }}>{ui.examLang}</label>
-                        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{ui.examLangSub}</p>
+                        <label className="section-label block mb-1">{ui.examLang}</label>
+                        <p className="text-xs mb-3" style={{ color: 'var(--ink-muted)' }}>{ui.examLangSub}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {LANG_OPTIONS.map(l => (
                             <button key={l.code} type="button" onClick={() => setForm(f => ({ ...f, examLanguage: l.code }))}
-                              className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200"
+                              className="flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors"
                               style={form.examLanguage === l.code
-                                ? { borderColor: 'var(--accent)', background: 'var(--accent-glow)', color: 'var(--accent)' }
-                                : { borderColor: 'var(--border)', color: 'var(--text-muted)', background: 'var(--surface-2)' }}>
-                              <span>{l.flag}</span>
-                              <span>{l.native}</span>
+                                ? { background: 'var(--ink)', color: 'var(--paper)', border: '1px solid var(--ink)' }
+                                : { background: 'transparent', color: 'var(--ink-muted)', border: '1px solid var(--border-medium)' }}>
+                              <span>{l.flag}</span><span>{l.native}</span>
                             </button>
                           ))}
                         </div>
                       </div>
 
-                      {/* Text languages (multi-select) */}
                       <div>
-                        <label className="block text-xs font-semibold mb-0.5" style={{ color: 'var(--text-secondary)' }}>{ui.textLangs}</label>
-                        <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>{ui.textLangsSub}</p>
+                        <label className="section-label block mb-1">{ui.textLangs}</label>
+                        <p className="text-xs mb-3" style={{ color: 'var(--ink-muted)' }}>{ui.textLangsSub}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {LANG_OPTIONS.map(l => {
                             const selected = form.textLanguages.includes(l.code);
                             return (
                               <button key={l.code} type="button" onClick={() => toggleTextLang(l.code)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200"
+                                className="flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors"
                                 style={selected
-                                  ? { borderColor: '#34d399', background: 'rgba(52,211,153,0.1)', color: '#34d399' }
-                                  : { borderColor: 'var(--border)', color: 'var(--text-muted)', background: 'var(--surface-2)' }}>
-                                <span>{l.flag}</span>
-                                <span>{l.native}</span>
+                                  ? { background: 'var(--accent)', color: 'var(--paper)', border: '1px solid var(--accent)' }
+                                  : { background: 'transparent', color: 'var(--ink-muted)', border: '1px solid var(--border-medium)' }}>
+                                <span>{l.flag}</span><span>{l.native}</span>
                                 {selected && <span className="ms-auto">✓</span>}
                               </button>
                             );
                           })}
                         </div>
-                        <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
+                        <p className="text-xs mt-2" style={{ color: 'var(--ink-muted)' }}>
                           {form.textLanguages.map(c => TEXT_LANG_LABELS[c]).join(' · ')}
                         </p>
                       </div>
@@ -278,12 +268,13 @@ export default function AuthModal({ onClose }: Props) {
               )}
 
               {error && (
-                <div className="px-4 py-3 rounded-xl text-sm" style={{ background: 'rgba(248,113,113,0.1)', color: '#f87171', border: '1px solid rgba(248,113,113,0.2)' }}>
+                <div className="py-3 px-4 text-sm"
+                  style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}>
                   {error}
                 </div>
               )}
 
-              <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+              <button type="submit" disabled={loading} className="btn-editorial w-full py-3">
                 {loading ? (mode === 'login' ? ui.signing : ui.wait) : (mode === 'login' ? ui.signIn : ui.submit)}
               </button>
             </form>
@@ -299,9 +290,9 @@ function FormField({ label, value, onChange, type = 'text', placeholder }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>{label}</label>
+      <label className="section-label block mb-1.5">{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} required
-        className="input" />
+        className="input-editorial" />
     </div>
   );
 }
