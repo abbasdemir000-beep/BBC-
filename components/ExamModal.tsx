@@ -36,7 +36,6 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    // Generate exam
     fetch('/api/exam', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,7 +50,6 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
       });
   }, [consultationId]);
 
-  // Start countdown when exam loads
   useEffect(() => {
     if (!exam) return;
     startRef.current = Date.now();
@@ -91,7 +89,7 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
     <Modal onClose={onClose}>
       <div className="flex flex-col items-center gap-4 py-12">
         <div className="w-12 h-12 rounded-full border-4 border-brand-100 border-t-brand-600 animate-spin" />
-        <p className="text-slate-600 font-medium">Generating your exam…</p>
+        <p className="font-medium" style={{ color: 'var(--text-secondary)' }}>Generating your exam…</p>
       </div>
     </Modal>
   );
@@ -102,20 +100,22 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
         <div className={`text-6xl ${result.score >= 60 ? '' : 'grayscale'}`}>
           {result.score >= 80 ? '🏆' : result.score >= 60 ? '✅' : '❌'}
         </div>
-        <h2 className="text-2xl font-bold text-slate-900">
+        <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
           {result.score >= 60 ? 'Exam Passed!' : 'Exam Failed'}
         </h2>
-        <div className={`text-5xl font-black ${result.score >= 60 ? 'text-green-600' : 'text-red-500'}`}>
+        <div className={`text-5xl font-black ${result.score >= 60 ? 'text-green-400' : 'text-red-400'}`}>
           {result.score}%
         </div>
-        <p className="text-slate-600 text-sm max-w-xs mx-auto">{result.feedback}</p>
+        <p className="text-sm max-w-xs mx-auto" style={{ color: 'var(--text-secondary)' }}>{result.feedback}</p>
         {result.score >= 60 && result.chatRoomId && (
-          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-sm text-green-700 font-medium">
+          <div className="rounded-2xl p-4 text-sm font-medium"
+            style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)', color: '#34d399' }}>
             💬 Chat with the asker is now unlocked!
           </div>
         )}
         {result.score < 60 && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-600">
+          <div className="rounded-2xl p-4 text-sm"
+            style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
             Score ≥ 60% required to unlock chat. You scored {result.score}%.
           </div>
         )}
@@ -138,8 +138,8 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <div>
-            <h2 className="font-bold text-slate-900">Domain Expertise Exam</h2>
-            <p className="text-xs text-slate-500">Topic: {exam?.topic} · Answer briefly in your own words</p>
+            <h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>Domain Expertise Exam</h2>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Topic: {exam?.topic} · Answer briefly in your own words</p>
           </div>
           <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${urgentColor} flex flex-col items-center justify-center text-white shadow flex-shrink-0`}>
             <span className="text-xl font-black leading-none">{timeLeft}</span>
@@ -147,7 +147,7 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
           </div>
         </div>
         {/* Timer bar */}
-        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-2)' }}>
           <div
             className={`h-full bg-gradient-to-r ${urgentColor} transition-all duration-1000`}
             style={{ width: `${pct}%` }}
@@ -160,10 +160,10 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
         {exam?.questions.map((q, i) => (
           <div key={q.id} className="space-y-2">
             <div className="flex items-start gap-2">
-              <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+              <span className="w-6 h-6 rounded-full bg-brand-500/20 text-brand-400 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
               <div>
-                <p className="text-sm font-semibold text-slate-800">{q.question}</p>
-                <p className="text-xs text-slate-400 mt-0.5 italic">{q.hint}</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{q.question}</p>
+                <p className="text-xs mt-0.5 italic" style={{ color: 'var(--text-muted)' }}>{q.hint}</p>
               </div>
             </div>
             <textarea
@@ -171,7 +171,7 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
               onChange={e => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
               placeholder="Type your answer here…"
               rows={3}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
+              className="input resize-none"
             />
           </div>
         ))}
@@ -190,8 +190,10 @@ export default function ExamModal({ consultationId, expertId, submissionId, onDo
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4"
+      style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <div className="w-full max-w-lg overflow-hidden rounded-[1.25rem]"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 25px 80px rgba(0,0,0,0.4)' }}>
         <div className="bg-gradient-to-r from-brand-500 to-purple-600 px-5 py-3 flex items-center justify-between">
           <span className="text-white font-semibold text-sm">🧪 Expert Examination</span>
           <button onClick={onClose} className="text-white/70 hover:text-white text-xl leading-none">×</button>

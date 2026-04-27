@@ -69,7 +69,8 @@ function AdOverlay({ onSkip, onDone, apiPromise }: {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+      style={{ background: 'rgba(0,0,0,0.8)' }}>
       <div className="w-full max-w-lg mx-4 space-y-4">
         {/* Ad card */}
         <div className={`rounded-3xl bg-gradient-to-br ${ad.color} p-8 text-white shadow-2xl`}>
@@ -85,13 +86,18 @@ function AdOverlay({ onSkip, onDone, apiPromise }: {
         </div>
 
         {/* Pipeline progress */}
-        <div className="bg-white rounded-2xl p-5 shadow-xl">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Processing your question</div>
+        <div className="rounded-2xl p-5"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
+          <div className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-muted)' }}>
+            Processing your question
+          </div>
           <div className="space-y-2">
             {PIPELINE_STEPS.map((step, i) => (
               <div key={step.label} className={`flex items-center gap-3 transition-all duration-500 ${i <= currentStep ? 'opacity-100' : 'opacity-30'}`}>
                 <span className="text-base w-6 text-center">{i < currentStep ? '✅' : i === currentStep ? step.icon : '○'}</span>
-                <span className={`text-sm ${i === currentStep ? 'text-brand-700 font-semibold' : 'text-slate-600'}`}>{step.label}</span>
+                <span className="text-sm" style={{ color: i === currentStep ? 'var(--accent)' : 'var(--text-secondary)', fontWeight: i === currentStep ? 600 : 400 }}>
+                  {step.label}
+                </span>
               </div>
             ))}
           </div>
@@ -100,10 +106,7 @@ function AdOverlay({ onSkip, onDone, apiPromise }: {
         {/* Skip button */}
         <div className="flex justify-end">
           {canSkip ? (
-            <button
-              onClick={handleSkip}
-              className="px-6 py-2.5 bg-white text-slate-800 rounded-xl font-semibold text-sm shadow-lg hover:bg-slate-50 transition-all flex items-center gap-2"
-            >
+            <button onClick={handleSkip} className="btn-secondary px-6 py-2.5 flex items-center gap-2">
               {apiDone ? 'View Results →' : 'Skip Ad →'}
             </button>
           ) : (
@@ -188,39 +191,55 @@ export default function AskQuestion() {
   return (
     <div className="p-8 max-w-2xl mx-auto" dir={dir}>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">{t('ask_title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('ask_subtitle')}</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('ask_title')}</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{t('ask_subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-5">
         <div>
-          <label className="text-sm font-semibold text-slate-700 mb-1.5 block">{t('ask_label_title')}</label>
+          <label className="text-sm font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+            {t('ask_label_title')}
+          </label>
           <input className="input" placeholder={t('ask_placeholder_t')} value={title}
             onChange={e => setTitle(e.target.value)} required minLength={3} maxLength={200} />
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-slate-700 mb-1.5 block">{t('ask_label_desc')}</label>
+          <label className="text-sm font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+            {t('ask_label_desc')}
+          </label>
           <textarea className="input resize-none" rows={6} placeholder={t('ask_placeholder_d')}
             value={description} onChange={e => setDescription(e.target.value)} required minLength={5} />
-          <div className="text-xs text-slate-400 mt-1 text-end">{description.length} chars</div>
+          <div className="text-xs mt-1 text-end" style={{ color: 'var(--text-muted)' }}>{description.length} chars</div>
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-slate-700 mb-1.5 block">{t('ask_urgency')}</label>
+          <label className="text-sm font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+            {t('ask_urgency')}
+          </label>
           <div className="grid grid-cols-4 gap-2">
             {urgencyOpts.map(u => (
               <button key={u.key} type="button" onClick={() => setUrgency(u.key)}
                 className={`py-2 rounded-xl text-sm font-medium transition-all border ${
-                  urgency === u.key ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}>
+                  urgency === u.key ? 'bg-brand-600 text-white border-brand-600' : ''
+                }`}
+                style={urgency !== u.key ? {
+                  background: 'var(--surface-2)',
+                  color: 'var(--text-secondary)',
+                  borderColor: 'var(--border)',
+                } : {}}>
                 {u.icon} {u.label}
               </button>
             ))}
           </div>
         </div>
 
-        {error && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{error}</div>}
+        {error && (
+          <div className="rounded-xl p-3 text-sm"
+            style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
+            {error}
+          </div>
+        )}
 
         <button type="submit" className="btn-primary w-full py-3 text-base font-semibold">{t('ask_submit')}</button>
       </form>
@@ -245,44 +264,47 @@ function AnalysisResult({ analysis, consultationId, onReset }: { analysis: Analy
   return (
     <div className="p-8 max-w-2xl mx-auto space-y-6 animate-slide-in" dir={dir}>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">{t('ask_done_title')}</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('ask_done_title')}</h1>
         <button onClick={onReset} className="btn-secondary text-sm">{t('ask_another')}</button>
       </div>
 
       {!a.isSafe && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-          <div className="font-semibold text-red-700 mb-1">{t('safety_warning')}</div>
-          <p className="text-sm text-red-600">{flags.join(', ')}</p>
+        <div className="rounded-2xl p-4"
+          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)' }}>
+          <div className="font-semibold mb-1" style={{ color: '#f87171' }}>{t('safety_warning')}</div>
+          <p className="text-sm" style={{ color: '#f87171' }}>{flags.join(', ')}</p>
         </div>
       )}
 
       <div className="card space-y-4">
         <div className="grid grid-cols-2 gap-3">
           {resultItems.map(item => (
-            <div key={item.label} className="bg-slate-50 rounded-xl p-3">
-              <div className="text-xs text-slate-500 mb-0.5">{item.icon} {item.label}</div>
-              <div className="text-sm font-semibold text-slate-800 capitalize">{item.value}</div>
+            <div key={item.label} className="rounded-xl p-3"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+              <div className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>{item.icon} {item.label}</div>
+              <div className="text-sm font-semibold capitalize" style={{ color: 'var(--text-primary)' }}>{item.value}</div>
             </div>
           ))}
         </div>
-        <div className="bg-brand-50 rounded-xl p-3">
-          <div className="text-xs text-brand-600 font-semibold mb-1">{t('result_reasoning')}</div>
-          <p className="text-sm text-slate-700">{a.reasoning}</p>
+        <div className="rounded-xl p-3" style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)' }}>
+          <div className="text-xs font-semibold mb-1" style={{ color: 'var(--accent)' }}>{t('result_reasoning')}</div>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{a.reasoning}</p>
         </div>
-        <div className="text-xs text-slate-400">{analysis.processingTimeMs}ms</div>
+        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{analysis.processingTimeMs}ms</div>
       </div>
 
       {analysis.routings.length > 0 && (
         <div className="card space-y-3">
-          <h2 className="font-semibold text-slate-800">{t('result_matched')}</h2>
+          <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{t('result_matched')}</h2>
           {analysis.routings.map((r, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl"
+              style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">{r.rank}</div>
               <div className="flex-1">
-                <div className="text-sm font-medium text-slate-800">{r.expertName}</div>
-                <div className="text-xs text-slate-500">{t('result_similarity')}: {(r.similarityScore * 100).toFixed(1)}%</div>
+                <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{r.expertName}</div>
+                <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('result_similarity')}: {(r.similarityScore * 100).toFixed(1)}%</div>
               </div>
-              <div className="w-24 bg-slate-200 rounded-full h-2">
+              <div className="w-24 rounded-full h-2" style={{ background: 'var(--surface)' }}>
                 <div className="bg-brand-500 h-2 rounded-full" style={{ width: `${r.similarityScore * 100}%` }} />
               </div>
             </div>
@@ -292,9 +314,9 @@ function AnalysisResult({ analysis, consultationId, onReset }: { analysis: Analy
 
       <div className="card text-center space-y-3">
         <div className="text-3xl">⚡</div>
-        <h3 className="font-bold text-slate-900">{t('ask_comp_started')}</h3>
-        <p className="text-sm text-slate-500">Experts are being notified and examined. You'll receive a chat invitation when an expert passes.</p>
-        <div className="text-xs text-slate-400">ID: {consultationId}</div>
+        <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>{t('ask_comp_started')}</h3>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Experts are being notified and examined. You'll receive a chat invitation when an expert passes.</p>
+        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>ID: {consultationId}</div>
       </div>
     </div>
   );

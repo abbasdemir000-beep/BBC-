@@ -137,6 +137,9 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen" dir={dir} style={{ background: 'var(--bg)' }}>
+      {/* Aurora ambient background */}
+      <div className="aurora" aria-hidden="true"><span /></div>
+
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
       {/* Mobile overlay */}
