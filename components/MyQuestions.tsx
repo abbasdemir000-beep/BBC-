@@ -5,42 +5,28 @@ import ChatInterface from './ChatInterface';
 import AnswerViewer from './AnswerViewer';
 
 interface Submission {
-  id: string;
-  expertId: string;
-  status: string;
-  aiScore: number | null;
-  examScore: number | null;
-  finalScore: number | null;
+  id: string; expertId: string; status: string;
+  aiScore: number | null; examScore: number | null; finalScore: number | null;
   expert: { name: string; domain?: { name: string; icon: string } };
 }
-
-interface ChatRoom {
-  id: string;
-  expertId: string;
-  isActive: boolean;
-}
-
+interface ChatRoom { id: string; expertId: string; isActive: boolean; }
 interface Consultation {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  difficulty: string;
-  createdAt: string;
+  id: string; title: string; description: string; status: string;
+  difficulty: string; createdAt: string;
   domain?: { name: string; icon: string; color: string };
   submissions: Submission[];
   chatRooms: ChatRoom[];
   _count: { submissions: number };
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-600',
-  analyzing: 'bg-blue-100 text-blue-700',
-  routing: 'bg-purple-100 text-purple-700',
-  active: 'bg-green-100 text-green-700',
-  examining: 'bg-amber-100 text-amber-700',
-  completed: 'bg-emerald-100 text-emerald-700',
-  cancelled: 'bg-red-100 text-red-600',
+const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  pending:   { bg: 'rgba(148,163,184,0.1)',  color: '#94a3b8' },
+  analyzing: { bg: 'rgba(56,189,248,0.1)',   color: '#38bdf8' },
+  routing:   { bg: 'rgba(167,139,250,0.1)',  color: '#a78bfa' },
+  active:    { bg: 'rgba(52,211,153,0.1)',   color: '#34d399' },
+  examining: { bg: 'rgba(251,191,36,0.1)',   color: '#fbbf24' },
+  completed: { bg: 'rgba(52,211,153,0.1)',   color: '#34d399' },
+  cancelled: { bg: 'rgba(248,113,113,0.1)',  color: '#f87171' },
 };
 
 export default function MyQuestions() {
@@ -60,7 +46,7 @@ export default function MyQuestions() {
 
   if (!user) return (
     <div className="p-8">
-      <div className="card text-center py-16 text-slate-400">
+      <div className="card text-center py-16" style={{ color: 'var(--text-muted)' }}>
         <div className="text-4xl mb-3">🔒</div>
         <p className="font-medium">Sign in to see your questions</p>
       </div>
@@ -68,8 +54,8 @@ export default function MyQuestions() {
   );
 
   if (loading) return (
-    <div className="p-8 space-y-4 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-40 bg-slate-200 rounded-2xl" />)}
+    <div className="p-8 space-y-4">
+      {[1, 2, 3].map(i => <div key={i} className="h-40 skeleton" />)}
     </div>
   );
 
@@ -79,12 +65,14 @@ export default function MyQuestions() {
       {viewingAnswers && <AnswerViewer consultationId={viewingAnswers} onClose={() => setViewingAnswers(null)} />}
 
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">My Questions</h1>
-        <p className="text-slate-500 text-sm mt-1">{consultations.length} question{consultations.length !== 1 ? 's' : ''} submitted</p>
+        <h1 className="text-2xl font-bold gradient-text">My Questions</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+          {consultations.length} question{consultations.length !== 1 ? 's' : ''} submitted
+        </p>
       </div>
 
       {consultations.length === 0 ? (
-        <div className="card text-center py-16 text-slate-400">
+        <div className="card text-center py-16" style={{ color: 'var(--text-muted)' }}>
           <div className="text-4xl mb-3">❓</div>
           <p className="font-medium">No questions yet</p>
           <p className="text-sm mt-1">Go to "Ask Question" to submit your first question</p>
@@ -110,78 +98,95 @@ function ConsultationCard({ consultation: c, onOpenChat, onViewAnswers }: {
   onOpenChat: (roomId: string) => void;
   onViewAnswers: () => void;
 }) {
+  const ss = STATUS_STYLE[c.status] ?? STATUS_STYLE.pending;
+
   return (
-    <div className="card border border-slate-100 hover:border-slate-200 transition-all">
+    <div className="card transition-all">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-slate-900">{c.title}</h3>
-            <span className={`text-xs px-2 py-0.5 rounded-lg font-medium ${STATUS_COLORS[c.status] ?? 'bg-slate-100 text-slate-600'}`}>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{c.title}</h3>
+            <span className="text-xs px-2 py-0.5 rounded-lg font-medium"
+              style={{ background: ss.bg, color: ss.color }}>
               {c.status}
             </span>
           </div>
-          <p className="text-sm text-slate-500 mt-1 line-clamp-2">{c.description}</p>
+          <p className="text-sm line-clamp-2" style={{ color: 'var(--text-muted)' }}>{c.description}</p>
 
           <div className="flex flex-wrap items-center gap-2 mt-2">
             {c.domain && (
-              <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
+              <span className="text-xs px-2 py-1 rounded-lg"
+                style={{ background: 'var(--surface-2)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
                 {c.domain.icon} {c.domain.name}
               </span>
             )}
-            <span className="text-xs text-slate-400">{c.difficulty}</span>
-            <span className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleDateString()}</span>
+            <span className="text-xs capitalize" style={{ color: 'var(--text-muted)' }}>{c.difficulty}</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {new Date(c.createdAt).toLocaleDateString()}
+            </span>
           </div>
         </div>
+
         <div className="flex-shrink-0 text-right space-y-2">
           <div>
-            <div className="text-2xl font-bold text-slate-700">{c._count.submissions}</div>
-            <div className="text-xs text-slate-400">answers</div>
+            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{c._count.submissions}</div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>answers</div>
           </div>
           {c._count.submissions > 0 && (
             <button onClick={onViewAnswers}
-              className="px-3 py-1.5 bg-brand-100 text-brand-700 rounded-xl text-xs font-semibold hover:bg-brand-200 transition-all">
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              style={{ background: 'rgba(99,102,241,0.1)', color: 'var(--accent)', border: '1px solid rgba(99,102,241,0.15)' }}>
               📖 View Answers
             </button>
           )}
         </div>
       </div>
 
-      {/* Submissions */}
+      {/* Expert submissions */}
       {c.submissions.length > 0 && (
         <div className="mt-4 space-y-2">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Expert Answers</div>
+          <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+            Expert Answers
+          </div>
           {c.submissions.map(sub => {
             const chatRoom = c.chatRooms.find(r => r.expertId === sub.expertId && r.isActive);
+            const subSS = STATUS_STYLE[sub.status] ?? STATUS_STYLE.pending;
             return (
-              <div key={sub.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              <div key={sub.id} className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
                   {sub.expert.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-800 truncate">{sub.expert.name}</div>
+                  <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                    {sub.expert.name}
+                  </div>
                   {sub.expert.domain && (
-                    <div className="text-xs text-slate-500">{sub.expert.domain.icon} {sub.expert.domain.name}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {sub.expert.domain.icon} {sub.expert.domain.name}
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs flex-shrink-0">
                   {sub.aiScore != null && (
-                    <span className="text-slate-500">AI: <strong>{sub.aiScore}</strong></span>
+                    <span style={{ color: 'var(--text-muted)' }}>AI: <strong style={{ color: 'var(--text-primary)' }}>{sub.aiScore}</strong></span>
                   )}
                   {sub.examScore != null && (
-                    <span className="text-slate-500">Exam: <strong>{sub.examScore}</strong></span>
+                    <span style={{ color: 'var(--text-muted)' }}>Exam: <strong style={{ color: 'var(--text-primary)' }}>{sub.examScore}</strong></span>
                   )}
                   {sub.finalScore != null && (
-                    <span className="text-green-700 font-bold">⭐ {sub.finalScore}</span>
+                    <span className="font-bold" style={{ color: '#34d399' }}>⭐ {sub.finalScore}</span>
                   )}
-                  <span className={`px-2 py-0.5 rounded-lg ${STATUS_COLORS[sub.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                  <span className="px-2 py-0.5 rounded-lg"
+                    style={{ background: subSS.bg, color: subSS.color }}>
                     {sub.status}
                   </span>
                 </div>
                 {chatRoom && (
-                  <button
-                    onClick={() => onOpenChat(chatRoom.id)}
-                    className="ms-2 px-3 py-1.5 bg-brand-500 text-white rounded-xl text-xs font-semibold hover:bg-brand-600 transition-all flex-shrink-0"
-                  >
+                  <button onClick={() => onOpenChat(chatRoom.id)}
+                    className="ms-2 px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition-all flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
                     💬 Chat
                   </button>
                 )}

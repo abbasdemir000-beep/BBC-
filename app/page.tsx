@@ -13,13 +13,19 @@ import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import SearchPage from '@/components/SearchPage';
 import Leaderboard from '@/components/Leaderboard';
 import AdminPanel from '@/components/AdminPanel';
+import ProfileSettings from '@/components/ProfileSettings';
 import { useLang } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 
-type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard' | 'notifications' | 'my-questions' | 'search' | 'leaderboard' | 'admin';
+type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard' | 'notifications' | 'my-questions' | 'search' | 'leaderboard' | 'admin' | 'profile';
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
+  profile: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+    </svg>
+  ),
   dashboard: (
     <svg className="w-4.5 h-4.5 w-[18px] h-[18px]" viewBox="0 0 20 20" fill="currentColor">
       <path d="M2 10a8 8 0 1116 0A8 8 0 012 10zm8-4a1 1 0 00-1 1v3.586L7.707 9.293a1 1 0 00-1.414 1.414l2 2A1 1 0 0010 13h.01a1 1 0 00.697-.29l3-3a1 1 0 00-1.414-1.414L11 9.586V7a1 1 0 00-1-1z"/>
@@ -80,7 +86,7 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
 
 const NAV_GROUPS = [
   { label: 'Explore', items: ['dashboard', 'search', 'experts', 'consultations', 'leaderboard'] },
-  { label: 'My Space', items: ['ask', 'my-questions', 'rewards', 'notifications'] },
+  { label: 'My Space', items: ['ask', 'my-questions', 'rewards', 'notifications', 'profile'] },
   { label: 'Expert', items: ['expert-dashboard'] },
   { label: 'System', items: ['admin'] },
 ];
@@ -102,12 +108,13 @@ export default function Home() {
     { id: 'experts'          },
     { id: 'consultations'    },
     { id: 'leaderboard'      },
-    { id: 'ask',       authOnly: true },
-    { id: 'my-questions', authOnly: true },
-    { id: 'rewards',   authOnly: true },
-    { id: 'notifications', authOnly: true },
+    { id: 'ask',              authOnly: true },
+    { id: 'my-questions',     authOnly: true },
+    { id: 'rewards',          authOnly: true },
+    { id: 'notifications',    authOnly: true },
+    { id: 'profile',          authOnly: true },
     { id: 'expert-dashboard', expertOnly: true },
-    { id: 'admin', adminOnly: true },
+    { id: 'admin',            adminOnly: true },
   ];
 
   const NAV_LABELS: Record<string, string> = {
@@ -120,6 +127,7 @@ export default function Home() {
     'my-questions': 'My Questions',
     rewards: t('nav_rewards'),
     notifications: 'Notifications',
+    profile: 'Profile Settings',
     'expert-dashboard': 'Expert Hub',
     admin: 'Admin',
   };
@@ -264,6 +272,7 @@ export default function Home() {
         {tab === 'search'           && <SearchPage />}
         {tab === 'leaderboard'      && <Leaderboard />}
         {tab === 'admin'            && <AdminPanel />}
+        {tab === 'profile'          && <ProfileSettings />}
       </main>
     </div>
   );

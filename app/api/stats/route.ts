@@ -1,7 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const leaderboard = searchParams.get('leaderboard');
+
+  if (leaderboard === 'users') {
+    const topUsers = await prisma.user.findMany({
+      orderBy: { reputation: 'desc' },
+      take: 10,
+      select: {
+        id: true, name: true, reputation: true,
+        _count: { select: { consultations: true } },
+      },
+    });
+    return NextResponse.json({ topUsers });
+  }
+
   const [
     totalExperts,
     totalConsultations,
@@ -20,7 +35,7 @@ export async function GET() {
     prisma.submission.count(),
     prisma.expert.findMany({
       orderBy: { rating: 'desc' },
-      take: 5,
+      take: 10,
       include: { domain: true },
     }),
     prisma.consultation.findMany({

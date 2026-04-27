@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface Reward {
   id: string; type: string; points: number; moneyValue: number;
@@ -9,6 +10,13 @@ interface Reward {
 
 const TYPE_ICONS: Record<string, string> = {
   win_points: '🏆', ad_reward: '📺', referral_bonus: '👥', daily_bonus: '🌅', penalty: '⚠️',
+};
+
+const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }> = {
+  available: { bg: 'rgba(52,211,153,0.1)',  color: '#34d399', border: 'rgba(52,211,153,0.2)' },
+  claimed:   { bg: 'rgba(99,102,241,0.1)',  color: 'var(--accent)', border: 'rgba(99,102,241,0.2)' },
+  pending:   { bg: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: 'rgba(251,191,36,0.2)' },
+  expired:   { bg: 'rgba(148,163,184,0.1)', color: '#94a3b8', border: 'rgba(148,163,184,0.2)' },
 };
 
 export default function RewardPanel() {
@@ -20,20 +28,22 @@ export default function RewardPanel() {
   const [showAdModal, setShowAdModal] = useState(false);
   const [pendingClaim, setPendingClaim] = useState<string | null>(null);
   const { t, dir } = useLang();
+  const { user } = useAuth();
 
   function load() {
-    fetch('/api/rewards?userId=demo')
+    const userId = user?.id ?? 'demo';
+    fetch(`/api/rewards?userId=${userId}`)
       .then(r => r.json())
-      .then(d => { setRewards(d.rewards); setTotalPoints(d.totalPoints); setMoneyValue(d.moneyValue); })
+      .then(d => { setRewards(d.rewards ?? []); setTotalPoints(d.totalPoints ?? 0); setMoneyValue(d.moneyValue ?? 0); })
       .finally(() => setLoading(false));
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [user?.id]);
 
   async function claimReward(rewardId: string, adWatched = false) {
     setClaiming(rewardId);
     const res = await fetch('/api/rewards', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expertId: 'demo', rewardId, adWatched }),
+      body: JSON.stringify({ expertId: user?.id ?? 'demo', rewardId, adWatched }),
     });
     const data = await res.json() as { requiresAd?: boolean };
     if (data.requiresAd) { setPendingClaim(rewardId); setShowAdModal(true); }
@@ -46,88 +56,120 @@ export default function RewardPanel() {
     if (pendingClaim) { await claimReward(pendingClaim, true); setPendingClaim(null); }
   }
 
-  if (loading) return <div className="p-8 animate-pulse"><div className="h-48 bg-slate-200 rounded-2xl" /></div>;
+  if (loading) return (
+    <div className="p-8 space-y-4">
+      <div className="h-8 w-48 skeleton" />
+      <div className="grid grid-cols-3 gap-4">{[1,2,3].map(i => <div key={i} className="h-28 skeleton" />)}</div>
+      <div className="h-64 skeleton" />
+    </div>
+  );
 
   return (
     <div className="p-8 space-y-6" dir={dir}>
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">{t('rew_title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{t('rew_subtitle')}</p>
+        <h1 className="text-2xl font-bold gradient-text">{t('rew_title')}</h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{t('rew_subtitle')}</p>
       </div>
 
+      {/* Summary cards */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="card bg-gradient-to-br from-amber-400 to-amber-600 text-white">
-          <div className="text-4xl mb-2">🪙</div>
-          <div className="text-3xl font-bold">{totalPoints.toLocaleString()}</div>
-          <div className="text-amber-100 text-sm">{t('rew_total_pts')}</div>
+        <div className="card text-white overflow-hidden" style={{ background: 'linear-gradient(135deg,#f59e0b,#f97316)' }}>
+          <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)' }} />
+          <div className="text-3xl mb-1">🪙</div>
+          <div className="text-3xl font-black">{totalPoints.toLocaleString()}</div>
+          <div className="text-sm text-white/80 mt-1">{t('rew_total_pts')}</div>
         </div>
-        <div className="card bg-gradient-to-br from-green-500 to-green-700 text-white">
-          <div className="text-4xl mb-2">💵</div>
-          <div className="text-3xl font-bold">${moneyValue.toFixed(2)}</div>
-          <div className="text-green-100 text-sm">{t('rew_money')}</div>
+        <div className="card text-white" style={{ background: 'linear-gradient(135deg,#10b981,#34d399)' }}>
+          <div className="text-3xl mb-1">💵</div>
+          <div className="text-3xl font-black">${moneyValue.toFixed(2)}</div>
+          <div className="text-sm text-white/80 mt-1">{t('rew_money')}</div>
         </div>
         <div className="card">
-          <div className="text-4xl mb-2">📊</div>
-          <div className="text-3xl font-bold text-slate-900">{rewards.filter(r => r.status === 'available').length}</div>
-          <div className="text-slate-500 text-sm">{t('rew_claimable')}</div>
+          <div className="text-3xl mb-1">🎁</div>
+          <div className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>
+            {rewards.filter(r => r.status === 'available').length}
+          </div>
+          <div className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{t('rew_claimable')}</div>
         </div>
       </div>
 
-      <div className="bg-brand-50 border border-brand-200 rounded-2xl p-4 flex items-center gap-4">
+      {/* Rate info */}
+      <div className="rounded-2xl p-4 flex items-center gap-4"
+        style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
         <div className="text-2xl">💱</div>
         <div>
-          <div className="font-semibold text-brand-800">{t('rew_rate')}</div>
-          <div className="text-sm text-brand-600">{t('rew_min')}</div>
+          <div className="font-semibold" style={{ color: 'var(--accent)' }}>{t('rew_rate')}</div>
+          <div className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{t('rew_min')}</div>
         </div>
       </div>
 
+      {/* Rewards list */}
       <div className="card">
-        <h2 className="font-semibold text-slate-800 mb-4">{t('rew_title')}</h2>
+        <h2 className="font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>{t('rew_title')}</h2>
         {rewards.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-10" style={{ color: 'var(--text-muted)' }}>
             <div className="text-4xl mb-2">🏅</div>
             <p>{t('rew_no_rewards')}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {rewards.map(r => (
-              <div key={r.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
-                <div className="text-2xl">{TYPE_ICONS[r.type] ?? '🎁'}</div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-slate-800">{r.description}</div>
-                  <div className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</div>
+            {rewards.map(r => {
+              const ss = STATUS_STYLE[r.status] ?? STATUS_STYLE.pending;
+              return (
+                <div key={r.id} className="flex items-center gap-4 p-3 rounded-xl"
+                  style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                  <div className="text-2xl flex-shrink-0">{TYPE_ICONS[r.type] ?? '🎁'}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                      {r.description}
+                    </div>
+                    <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      {new Date(r.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="text-end flex-shrink-0">
+                    <div className="font-bold text-sm" style={{ color: '#fbbf24' }}>+{r.points} {t('pts')}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>${r.moneyValue.toFixed(3)}</div>
+                  </div>
+                  {r.status === 'available' ? (
+                    <button onClick={() => claimReward(r.id)} disabled={claiming === r.id}
+                      className="btn-primary text-xs px-3 py-1.5 disabled:opacity-50 flex-shrink-0">
+                      {claiming === r.id ? '…' : t('rew_claim')}
+                    </button>
+                  ) : (
+                    <span className="text-xs px-2 py-1 rounded-lg font-medium flex-shrink-0"
+                      style={{ background: ss.bg, color: ss.color, border: `1px solid ${ss.border}` }}>
+                      {r.status}
+                    </span>
+                  )}
                 </div>
-                <div className="text-end">
-                  <div className="font-bold text-amber-600">+{r.points} {t('pts')}</div>
-                  <div className="text-xs text-slate-500">${r.moneyValue.toFixed(3)}</div>
-                </div>
-                {r.status === 'available' && (
-                  <button onClick={() => claimReward(r.id)} disabled={claiming === r.id}
-                    className="btn-primary text-xs px-3 py-1.5 disabled:opacity-50">
-                    {claiming === r.id ? '...' : t('rew_claim')}
-                  </button>
-                )}
-                {r.status === 'claimed' && <span className="badge-green">{t('rew_claimed')}</span>}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
+      {/* Withdrawal */}
+      <WithdrawalSection totalPoints={totalPoints} />
+
+      {/* Ad modal */}
       {showAdModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center space-y-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(10px)' }}>
+          <div className="rounded-2xl p-8 max-w-sm w-full mx-4 text-center space-y-4"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
             <div className="text-5xl">📺</div>
-            <h3 className="text-xl font-bold text-slate-900">{t('rew_watch_ad')}</h3>
-            <div className="bg-slate-900 rounded-xl p-4 text-slate-400 text-sm">[Ad Placeholder — 30s]</div>
+            <h3 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('rew_watch_ad')}</h3>
+            <div className="rounded-xl p-4 text-sm" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+              [Ad Placeholder — 30s]
+            </div>
             <button onClick={watchAd} className="btn-primary w-full py-3">{t('rew_watch_claim')}</button>
-            <button onClick={() => setShowAdModal(false)} className="text-xs text-slate-400 hover:text-slate-600">Cancel</button>
+            <button onClick={() => setShowAdModal(false)}
+              className="text-xs transition-colors" style={{ color: 'var(--text-muted)' }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
-
-      {/* Withdrawal section */}
-      <WithdrawalSection totalPoints={totalPoints} />
     </div>
   );
 }
@@ -148,7 +190,7 @@ function WithdrawalSection({ totalPoints }: { totalPoints: number }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount, method, details }),
     });
-    const data = await res.json();
+    const data = await res.json() as { message?: string; error?: string };
     if (!res.ok) setError(data.error || 'Failed');
     else setSuccess(data.message || 'Withdrawal request submitted!');
     setSubmitting(false);
@@ -158,29 +200,52 @@ function WithdrawalSection({ totalPoints }: { totalPoints: number }) {
 
   return (
     <div className="card space-y-4">
-      <h2 className="font-semibold text-slate-800 flex items-center gap-2">💸 Withdraw Points</h2>
-      <p className="text-sm text-slate-500">Minimum 1,000 points ($1.00). Processing takes 3-5 business days.</p>
+      <h2 className="font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+        💸 Withdraw Points
+      </h2>
+      <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+        Minimum 1,000 points ($1.00). Processing takes 3-5 business days.
+      </p>
 
       {success ? (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-green-700 text-sm font-medium">{success}</div>
+        <div className="rounded-2xl p-4 text-sm font-medium"
+          style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)', color: '#34d399' }}>
+          {success}
+        </div>
       ) : (
         <form onSubmit={handleWithdraw} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Amount (points)</label>
+            <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+              Amount (points)
+            </label>
             <div className="flex items-center gap-3">
               <input type="range" min={1000} max={Math.max(1000, totalPoints)} step={500}
                 value={amount} onChange={e => setAmount(Number(e.target.value))}
-                className="flex-1 accent-brand-500" />
-              <span className="text-lg font-bold text-brand-600 w-24 text-right">{amount.toLocaleString()} pts</span>
+                className="flex-1 accent-indigo-500" />
+              <span className="text-lg font-bold w-28 text-right" style={{ color: 'var(--accent)' }}>
+                {amount.toLocaleString()} pts
+              </span>
             </div>
-            <div className="text-center text-sm text-green-700 font-semibold mt-1">= ${usd} USD</div>
+            <div className="text-center text-sm font-semibold mt-1" style={{ color: '#34d399' }}>= ${usd} USD</div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">Payment Method</label>
+            <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+              Payment Method
+            </label>
             <div className="flex gap-3">
               {(['paypal', 'bank'] as const).map(m => (
-                <label key={m} className={`flex-1 flex items-center justify-center gap-2 border-2 rounded-xl p-3 cursor-pointer transition-all ${method === m ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                <label key={m}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl p-3 cursor-pointer transition-all"
+                  style={method === m ? {
+                    border: '2px solid var(--accent)',
+                    background: 'rgba(99,102,241,0.08)',
+                    color: 'var(--accent)',
+                  } : {
+                    border: '2px solid var(--border)',
+                    background: 'var(--surface-2)',
+                    color: 'var(--text-secondary)',
+                  }}>
                   <input type="radio" name="method" value={m} checked={method === m} onChange={() => setMethod(m)} className="sr-only" />
                   <span>{m === 'paypal' ? '🅿️' : '🏦'}</span>
                   <span className="text-sm font-semibold capitalize">{m === 'paypal' ? 'PayPal' : 'Bank Transfer'}</span>
@@ -190,18 +255,24 @@ function WithdrawalSection({ totalPoints }: { totalPoints: number }) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-600 mb-1.5 block">
+            <label className="text-xs font-semibold mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
               {method === 'paypal' ? 'PayPal Email' : 'IBAN / Account Number'}
             </label>
             <input value={details} onChange={e => setDetails(e.target.value)} required
               placeholder={method === 'paypal' ? 'your@paypal.com' : 'IBAN or account number'}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              className="input" />
           </div>
 
-          {error && <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700">{error}</div>}
+          {error && (
+            <div className="rounded-xl p-3 text-sm"
+              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171' }}>
+              {error}
+            </div>
+          )}
 
           <button type="submit" disabled={submitting || totalPoints < 1000}
-            className="w-full py-3 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-xl font-semibold hover:from-green-600 hover:to-teal-700 disabled:opacity-60 transition-all">
+            className="w-full py-3 rounded-xl font-semibold text-white transition-all disabled:opacity-60"
+            style={{ background: 'linear-gradient(135deg,#10b981,#34d399)' }}>
             {submitting ? 'Submitting…' : totalPoints < 1000 ? 'Need 1,000+ points' : `Withdraw $${usd} →`}
           </button>
         </form>

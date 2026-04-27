@@ -4,23 +4,20 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import ChatInterface from './ChatInterface';
 
 interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  body: string;
-  isRead: boolean;
-  consultationId: string | null;
-  createdAt: string;
+  id: string; type: string; title: string; body: string;
+  isRead: boolean; consultationId: string | null; createdAt: string;
 }
 
 interface ChatRoom {
-  id: string;
-  consultationId: string;
-  isActive: boolean;
-  unlockedAt: string;
+  id: string; consultationId: string; isActive: boolean; unlockedAt: string;
   consultation: { title: string };
   messages: Array<{ content: string; createdAt: string; senderName: string }>;
 }
+
+const TYPE_ICON: Record<string, string> = {
+  targeted: '🎯', exam_unlocked: '📝', chat_unlocked: '💬',
+  answer_evaluated: '⭐', competition_won: '🏆',
+};
 
 export default function NotificationsPanel() {
   const { refresh } = useAuth();
@@ -53,19 +50,13 @@ export default function NotificationsPanel() {
     refresh();
   }
 
-  const TYPE_ICON: Record<string, string> = {
-    targeted: '🎯',
-    exam_unlocked: '📝',
-    chat_unlocked: '💬',
-    answer_evaluated: '⭐',
-    competition_won: '🏆',
-  };
-
   if (loading) return (
-    <div className="p-8 space-y-4 animate-pulse">
-      {[1, 2, 3].map(i => <div key={i} className="h-20 bg-slate-200 rounded-2xl" />)}
+    <div className="p-8 space-y-4">
+      {[1, 2, 3].map(i => <div key={i} className="h-20 skeleton" />)}
     </div>
   );
+
+  const unreadCount = notifs.filter(n => !n.isRead).length;
 
   return (
     <div className="p-8 space-y-6">
@@ -73,43 +64,50 @@ export default function NotificationsPanel() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Notifications</h1>
-          <p className="text-slate-500 text-sm mt-1">{notifs.filter(n => !n.isRead).length} unread</p>
+          <h1 className="text-2xl font-bold gradient-text">Notifications</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
+          </p>
         </div>
-        {notifs.some(n => !n.isRead) && (
-          <button
-            onClick={markAllRead}
-            className="text-sm text-brand-600 hover:text-brand-700 font-medium px-4 py-2 rounded-xl hover:bg-brand-50 transition-all"
-          >
+        {unreadCount > 0 && (
+          <button onClick={markAllRead}
+            className="text-sm font-medium px-4 py-2 rounded-xl transition-all"
+            style={{ color: 'var(--accent)', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)' }}>
             Mark all read
           </button>
         )}
       </div>
 
-      {/* Chat Rooms */}
+      {/* Active chat rooms */}
       {rooms.length > 0 && (
         <div className="card">
-          <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">💬 Active Chats</h2>
-          <div className="space-y-3">
+          <h2 className="font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            💬 Active Chats
+            <span className="w-5 h-5 text-xs rounded-full flex items-center justify-center font-bold text-white"
+              style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+              {rooms.length}
+            </span>
+          </h2>
+          <div className="space-y-2">
             {rooms.map(room => (
-              <div
-                key={room.id}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all cursor-pointer group"
-                onClick={() => setActiveChat(room.id)}
-              >
+              <div key={room.id}
+                className="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all group"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}
+                onClick={() => setActiveChat(room.id)}>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-slate-800 truncate">{room.consultation.title}</div>
+                  <div className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                    {room.consultation.title}
+                  </div>
                   {room.messages[0] && (
-                    <div className="text-xs text-slate-500 truncate mt-0.5">
+                    <div className="text-xs truncate mt-0.5" style={{ color: 'var(--text-muted)' }}>
                       {room.messages[0].senderName}: {room.messages[0].content}
                     </div>
                   )}
                 </div>
-                <div className="flex-shrink-0 ms-3">
-                  <span className="text-xs bg-brand-50 text-brand-700 px-3 py-1.5 rounded-xl font-medium group-hover:bg-brand-100 transition-all">
-                    Open →
-                  </span>
-                </div>
+                <span className="text-xs px-3 py-1.5 rounded-xl font-medium ms-3 flex-shrink-0 transition-all"
+                  style={{ background: 'rgba(99,102,241,0.1)', color: 'var(--accent)' }}>
+                  Open →
+                </span>
               </div>
             ))}
           </div>
@@ -118,25 +116,30 @@ export default function NotificationsPanel() {
 
       {/* Notifications list */}
       {notifs.length === 0 ? (
-        <div className="card text-center py-16 text-slate-400">
+        <div className="card text-center py-16" style={{ color: 'var(--text-muted)' }}>
           <div className="text-4xl mb-3">🔔</div>
           <p className="font-medium">No notifications yet</p>
+          <p className="text-sm mt-1">You'll be notified when experts respond</p>
         </div>
       ) : (
         <div className="space-y-2">
           {notifs.map(n => (
-            <div
-              key={n.id}
-              className={`card flex items-start gap-4 transition-all ${!n.isRead ? 'border border-brand-200 bg-brand-50/30' : 'border border-transparent'}`}
-            >
+            <div key={n.id} className="card flex items-start gap-4 transition-all"
+              style={!n.isRead ? {
+                border: '1px solid rgba(99,102,241,0.25)',
+                background: 'rgba(99,102,241,0.04)',
+              } : {}}>
               <div className="text-2xl flex-shrink-0 mt-0.5">{TYPE_ICON[n.type] ?? '🔔'}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-slate-800">{n.title}</p>
-                  {!n.isRead && <span className="w-2 h-2 rounded-full bg-brand-500 flex-shrink-0 mt-1.5" />}
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{n.title}</p>
+                  {!n.isRead && (
+                    <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                      style={{ background: 'var(--accent)' }} />
+                  )}
                 </div>
-                <p className="text-sm text-slate-600 mt-0.5">{n.body}</p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>{n.body}</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                   {new Date(n.createdAt).toLocaleString()}
                 </p>
               </div>
