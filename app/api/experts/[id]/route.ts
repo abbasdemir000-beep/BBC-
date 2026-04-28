@@ -87,7 +87,7 @@ export async function GET(
     const { examResults, ...expertWithoutExamResults } = expert;
     void examResults; // consumed above
 
-    return NextResponse.json({ ...expertWithoutExamResults, stats });
+    return NextResponse.json({ expert: { ...expertWithoutExamResults, ...stats } });
   } catch (error) {
     console.error('[GET /api/experts/[id]]', error);
     return NextResponse.json(
