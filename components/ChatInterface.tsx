@@ -62,11 +62,15 @@ export default function ChatInterface({ roomId, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end p-6 pointer-events-none">
-      <div className="w-96 h-[560px] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col pointer-events-auto overflow-hidden">
+      <div className="w-96 h-[560px] rounded-2xl shadow-2xl flex flex-col pointer-events-auto overflow-hidden"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-brand-500 to-purple-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
+        <div className="modal-header px-4 py-3 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-bold">💬</div>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+              style={{ background: 'rgba(255,255,255,0.2)' }}>
+              💬
+            </div>
             <div>
               <div className="text-white text-sm font-semibold">Live Chat</div>
               <div className="text-white/70 text-xs">Expert consultation</div>
@@ -78,7 +82,7 @@ export default function ChatInterface({ roomId, onClose }: Props) {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.length === 0 && (
-            <div className="text-center text-slate-400 text-sm py-8">
+            <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
               <div className="text-3xl mb-2">👋</div>
               <p>Start the conversation!</p>
             </div>
@@ -87,20 +91,22 @@ export default function ChatInterface({ roomId, onClose }: Props) {
             const isMine = msg.senderId === user?.id;
             return (
               <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[75%] group`}>
+                <div className="max-w-[75%] group">
                   {!isMine && (
-                    <div className="text-xs text-slate-500 mb-1 px-1">
+                    <div className="text-xs mb-1 px-1" style={{ color: 'var(--text-muted)' }}>
                       {msg.senderName} · {msg.senderRole}
                     </div>
                   )}
                   <div className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                    isMine
-                      ? 'bg-brand-500 text-white rounded-br-md'
-                      : 'bg-slate-100 text-slate-800 rounded-bl-md'
-                  }`}>
+                    isMine ? 'rounded-br-md' : 'rounded-bl-md'
+                  }`} style={isMine
+                    ? { background: '#c2714f', color: '#fff' }
+                    : { background: 'var(--surface-2)', color: 'var(--text-primary)' }
+                  }>
                     {msg.content}
                   </div>
-                  <div className={`text-xs text-slate-400 mt-0.5 px-1 ${isMine ? 'text-right' : 'text-left'}`}>
+                  <div className={`text-xs mt-0.5 px-1 ${isMine ? 'text-right' : 'text-left'}`}
+                    style={{ color: 'var(--text-muted)' }}>
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -111,17 +117,19 @@ export default function ChatInterface({ roomId, onClose }: Props) {
         </div>
 
         {/* Input */}
-        <form onSubmit={sendMessage} className="p-3 border-t border-slate-100 flex gap-2 flex-shrink-0">
+        <form onSubmit={sendMessage} className="p-3 flex gap-2 flex-shrink-0"
+          style={{ borderTop: '1px solid var(--border)' }}>
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="Type a message…"
-            className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="input flex-1 px-3 py-2 text-sm"
           />
           <button
             type="submit"
             disabled={sending || !input.trim()}
-            className="w-10 h-10 bg-brand-500 text-white rounded-xl flex items-center justify-center hover:bg-brand-600 disabled:opacity-50 transition-all flex-shrink-0"
+            className="w-10 h-10 text-white rounded-xl flex items-center justify-center disabled:opacity-50 transition-all flex-shrink-0"
+            style={{ background: '#c2714f' }}
           >
             {sending ? '…' : '→'}
           </button>

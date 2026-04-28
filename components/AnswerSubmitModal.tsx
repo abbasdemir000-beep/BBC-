@@ -18,7 +18,10 @@ export default function AnswerSubmitModal({ consultationId, consultationTitle, o
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!expert) return;
+    if (!expert) {
+      setError('No expert profile linked to your account. Please log out and log in again.');
+      return;
+    }
     setSubmitting(true); setError('');
     try {
       const res = await fetch('/api/submissions', {

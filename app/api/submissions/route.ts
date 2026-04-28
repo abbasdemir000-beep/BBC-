@@ -111,8 +111,18 @@ export async function POST(req: NextRequest) {
     });
   }
 
+  // Set provisional finalScore from AI score so results show immediately
+  // (exam score and user rating default to 0 / neutral until provided)
+  if (antiCheat.action !== 'disqualify' && evaluation.aiScore != null) {
+    const provisional = evaluation.aiScore * 0.7;
+    await prisma.submission.update({
+      where: { id: submission.id },
+      data: { finalScore: provisional, rank: 1 },
+    });
+  }
+
   return NextResponse.json({
-    submission,
+    submission: { ...submission, finalScore: evaluation.aiScore != null ? evaluation.aiScore * 0.7 : null },
     evaluation,
     antiCheat: { riskScore: antiCheat.riskScore, action: antiCheat.action, isFlagged: antiCheat.isFlagged },
   }, { status: 201 });

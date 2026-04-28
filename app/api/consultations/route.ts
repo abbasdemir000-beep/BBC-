@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSessionFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 
 const CreateSchema = z.object({
@@ -8,7 +9,6 @@ const CreateSchema = z.object({
   imageUrl: z.string().url().optional(),
   urgency: z.enum(['low', 'normal', 'high', 'critical']).default('normal'),
   isPublic: z.boolean().default(true),
-  userId: z.string().optional(),
   language: z.string().default('en'),
 });
 
@@ -46,6 +46,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+
   const body = await req.json();
   let data;
   try {
@@ -54,13 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(err) }, { status: 422 });
   }
 
-  // Use demo user if userId not provided
-  let userId = data.userId;
-  if (!userId) {
-    const demoUser = await prisma.user.findFirst({ where: { email: 'demo@marketplace.com' } });
-    userId = demoUser?.id;
-  }
-  if (!userId) return NextResponse.json({ error: 'User required' }, { status: 400 });
+  const userId = session.id;
 
   const consultation = await prisma.consultation.create({
     data: {
