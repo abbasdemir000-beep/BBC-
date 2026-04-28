@@ -32,7 +32,7 @@ export async function GET() {
   const stats = {
     questions: await prisma.consultation.count({ where: { userId: session.id } }),
     answers:   expert ? await prisma.submission.count({ where: { expertId: session.expertId! } }) : 0,
-    examPasses: expert ? await prisma.examResult.count({ where: { expertId: session.expertId!, passed: true } }) : 0,
+    examPasses: expert ? await prisma.examResult.count({ where: { expertId: session.expertId!, score: { gte: 60 } } }) : 0,
   };
 
   return NextResponse.json({ user, expert, stats });
