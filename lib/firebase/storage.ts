@@ -34,6 +34,14 @@ export async function deleteFile(path: string): Promise<void> {
 }
 
 /**
+ * Upload a user profile photo to Firebase Storage
+ */
+export async function uploadProfilePhoto(userId: string, file: File): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  return uploadFile(file, `avatars/${userId}.${ext}`);
+}
+
+/**
  * Get download URL for a file in Firebase Storage
  * @param path - The path in storage
  * @returns Download URL

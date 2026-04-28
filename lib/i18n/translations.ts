@@ -113,9 +113,43 @@ export const T = {
   of:                { en: 'of',      ar: 'من',      ku: 'لە' },
   loading:           { en: 'Loading...', ar: 'جارٍ التحميل...', ku: 'بارکردن...' },
   years:             { en: 'yrs',     ar: 'سنوات',  ku: 'ساڵ' },
-  demo_user:         { en: 'Demo User', ar: 'مستخدم تجريبي', ku: 'بەکارهێنەری نموونە' },
   pts:               { en: 'pts',     ar: 'نقطة',   ku: 'خاڵ' },
   safety_warning:    { en: '⚠️ Safety Warning', ar: '⚠️ تحذير أمان', ku: '⚠️ ئاگاداری ئایمەنی' },
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  sign_in:           { en: 'Sign In',          ar: 'تسجيل الدخول',       ku: 'چوونەژوورەوە' },
+  sign_out:          { en: 'Sign out',          ar: 'تسجيل الخروج',       ku: 'چوونەدەرەوە' },
+  sign_in_register:  { en: 'Sign In / Register',ar: 'تسجيل الدخول / إنشاء حساب', ku: 'چوونەژوورەوە / تۆمارکردن' },
+
+  // ── Theme ────────────────────────────────────────────────────────────────
+  theme_light:       { en: 'Switch to light mode', ar: 'الوضع الفاتح',  ku: 'دۆخی ڕووناک' },
+  theme_dark:        { en: 'Switch to dark mode',  ar: 'الوضع الداكن',  ku: 'دۆخی تاریک' },
+
+  // ── Logo ─────────────────────────────────────────────────────────────────
+  logo_name:         { en: 'KnowledgeMarket',   ar: 'سوق المعرفة',        ku: 'بازاڕی زانست' },
+  logo_sub:          { en: 'AI Expert Platform', ar: 'منصة الخبراء الذكية', ku: 'پلاتفۆرمی پسپۆڕی زیرەک' },
+
+  // ── Profile ──────────────────────────────────────────────────────────────
+  nav_profile:       { en: 'My Profile',        ar: 'ملفي الشخصي',       ku: 'پرۆفایلەکەم' },
+  profile_title:     { en: 'Profile',           ar: 'الملف الشخصي',      ku: 'پرۆفایل' },
+  profile_name:      { en: 'Display Name',      ar: 'الاسم المعروض',     ku: 'ناوی نیشاندان' },
+  profile_bio:       { en: 'Bio',               ar: 'نبذة شخصية',        ku: 'دەربارەم' },
+  profile_save:      { en: 'Save Changes',      ar: 'حفظ التغييرات',     ku: 'گۆڕانکاریەکان پاشەکەوت بکە' },
+  profile_photo:     { en: 'Change Photo',      ar: 'تغيير الصورة',      ku: 'وێنە بگۆڕە' },
+  profile_exp_yrs:   { en: 'Years of Experience',ar: 'سنوات الخبرة',     ku: 'ساڵانی ئەزموون' },
+  profile_rate:      { en: 'Hourly Rate ($)',    ar: 'السعر بالساعة ($)', ku: 'نرخی کاتژمێر ($)' },
+  profile_available: { en: 'Available',         ar: 'متاح',              ku: 'بەردەست' },
+  profile_reputation:{ en: 'Reputation',        ar: 'السمعة',            ku: 'ناوبانگ' },
+  profile_answers:   { en: 'Answers',           ar: 'إجابات',            ku: 'وەڵامەکان' },
+  profile_wins:      { en: 'Wins',              ar: 'الانتصارات',        ku: 'بردنەوەکان' },
+  profile_saved:     { en: 'Profile saved!',    ar: 'تم حفظ الملف!',    ku: 'پرۆفایل پاشەکەوت کرا!' },
+
+  // ── Answer submit ────────────────────────────────────────────────────────
+  answer_submit:     { en: 'Answer',            ar: 'أجب',               ku: 'وەڵامبدەرەوە' },
+  answer_title:      { en: 'Submit Your Answer',ar: 'أرسل إجابتك',      ku: 'وەڵامەکەت بنێرە' },
+  answer_content:    { en: 'Your Answer',       ar: 'إجابتك',            ku: 'وەڵامەکەت' },
+  answer_reasoning:  { en: 'Reasoning',         ar: 'التفكير والمنطق',   ku: 'هۆکار و ئازموون' },
+  answer_submitting: { en: 'Submitting...',     ar: 'جارٍ الإرسال...',  ku: 'ناردن...' },
 } as const;
 
 export type TKey = keyof typeof T;

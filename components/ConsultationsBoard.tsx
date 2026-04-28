@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useLang } from '@/lib/i18n/LanguageContext';
+import { useAuth } from '@/lib/auth/AuthContext';
+import AnswerSubmitModal from '@/components/AnswerSubmitModal';
 
 interface Consultation {
   id: string; title: string; description: string; status: string;
@@ -21,6 +23,8 @@ const URGENCY_COLORS: Record<string, string> = {
   low: 'text-slate-400', normal: 'text-blue-500', high: 'text-amber-500', critical: 'text-red-500',
 };
 
+const ANSWERABLE = new Set(['active', 'routing', 'pending']);
+
 export default function ConsultationsBoard() {
   const [items, setItems] = useState<Consultation[]>([]);
   const [total, setTotal] = useState(0);
@@ -28,7 +32,10 @@ export default function ConsultationsBoard() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
+  const [answerTarget, setAnswerTarget] = useState<Consultation | null>(null);
   const { t, dir } = useLang();
+  const { user } = useAuth();
+  const isExpert = user?.role === 'expert';
 
   const load = useCallback(() => {
     setLoading(true);
@@ -51,69 +58,99 @@ export default function ConsultationsBoard() {
   ];
 
   return (
-    <div className="p-8 space-y-6" dir={dir}>
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">{t('comp_title')}</h1>
-        <p className="text-slate-500 text-sm mt-1">{total} {t('comp_title').toLowerCase()}</p>
-      </div>
+    <>
+      {answerTarget && (
+        <AnswerSubmitModal
+          consultationId={answerTarget.id}
+          consultationTitle={answerTarget.title}
+          onClose={() => setAnswerTarget(null)}
+          onSubmitted={() => { setAnswerTarget(null); load(); }}
+        />
+      )}
 
-      <div className="flex gap-2 flex-wrap">
-        {statusFilters.map(s => (
-          <button key={s.key} onClick={() => { setStatus(s.key); setPage(1); }}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              status === s.key ? 'bg-brand-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}>{s.label}</button>
-        ))}
-      </div>
+      <div className="p-8 space-y-6" dir={dir}>
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('comp_title')}</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{total} {t('comp_title').toLowerCase()}</p>
+        </div>
 
-      {loading ? (
-        <div className="space-y-3 animate-pulse">{[...Array(5)].map((_, i) => <div key={i} className="h-28 bg-slate-200 rounded-2xl" />)}</div>
-      ) : (
-        <div className="space-y-3">
-          {items.map(c => (
-            <div key={c.id} className="card hover:shadow-md transition-all cursor-pointer">
-              <div className="flex items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    {c.domain && <span className="text-sm">{c.domain.icon}</span>}
-                    <h3 className="font-semibold text-slate-900 text-sm line-clamp-1">{c.title}</h3>
+        <div className="flex gap-2 flex-wrap">
+          {statusFilters.map(s => (
+            <button key={s.key} onClick={() => { setStatus(s.key); setPage(1); }}
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+              style={status === s.key ? {
+                background: 'var(--accent)', color: '#fff',
+              } : {
+                background: 'var(--surface)', border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+              }}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-28 skeleton" />)}</div>
+        ) : (
+          <div className="space-y-3">
+            {items.map(c => (
+              <div key={c.id} className="card hover:shadow-md transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {c.domain && <span className="text-sm">{c.domain.icon}</span>}
+                      <h3 className="font-semibold text-sm line-clamp-1" style={{ color: 'var(--text-primary)' }}>{c.title}</h3>
+                    </div>
+                    <p className="text-xs line-clamp-2 mb-3 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{c.description}</p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {c.domain && (
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--surface-2)', color: 'var(--text-muted)' }}>
+                          {c.domain.name}
+                        </span>
+                      )}
+                      {c.difficulty && <span className="text-xs capitalize" style={{ color: 'var(--text-muted)' }}>{c.difficulty}</span>}
+                      <span className={`text-xs font-medium ${URGENCY_COLORS[c.urgency]}`}>
+                        {c.urgency === 'critical' ? '🔴' : c.urgency === 'high' ? '🟡' : '🔵'} {c.urgency}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">{c.description}</p>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {c.domain && <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{c.domain.name}</span>}
-                    {c.difficulty && <span className="text-xs text-slate-500 capitalize">{c.difficulty}</span>}
-                    <span className={`text-xs font-medium ${URGENCY_COLORS[c.urgency]}`}>
-                      {c.urgency === 'critical' ? '🔴' : c.urgency === 'high' ? '🟡' : '🔵'} {c.urgency}
-                    </span>
+
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <span className={STATUS_MAP[c.status]?.cls ?? 'badge-gray'}>{c.status}</span>
+                    <div className="text-center">
+                      <div className="text-lg font-bold" style={{ color: 'var(--gold)' }}>🏆 {c.prizePoints}</div>
+                      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('comp_points')}</div>
+                    </div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{c._count.submissions} {t('comp_answers')}</div>
+
+                    {isExpert && ANSWERABLE.has(c.status) && (
+                      <button
+                        onClick={() => setAnswerTarget(c)}
+                        className="btn-primary py-1.5 px-3 text-xs mt-1">
+                        ✍️ {t('answer_submit')}
+                      </button>
+                    )}
                   </div>
-                </div>
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                  <span className={STATUS_MAP[c.status]?.cls ?? 'badge-gray'}>{c.status}</span>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-amber-500">🏆 {c.prizePoints}</div>
-                    <div className="text-xs text-slate-400">{t('comp_points')}</div>
-                  </div>
-                  <div className="text-xs text-slate-500">{c._count.submissions} {t('comp_answers')}</div>
                 </div>
               </div>
-            </div>
-          ))}
-          {items.length === 0 && (
-            <div className="text-center py-16 text-slate-400">
-              <div className="text-4xl mb-3">🔍</div>
-              <p>{t('loading')}</p>
-            </div>
-          )}
-        </div>
-      )}
+            ))}
+            {items.length === 0 && (
+              <div className="text-center py-16" style={{ color: 'var(--text-muted)' }}>
+                <div className="text-4xl mb-3">🔍</div>
+                <p>{t('loading')}</p>
+              </div>
+            )}
+          </div>
+        )}
 
-      {pages > 1 && (
-        <div className="flex items-center justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary disabled:opacity-50">{t('prev')}</button>
-          <span className="text-sm text-slate-600">{page} {t('of')} {pages}</span>
-          <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages} className="btn-secondary disabled:opacity-50">{t('next')}</button>
-        </div>
-      )}
-    </div>
+        {pages > 1 && (
+          <div className="flex items-center justify-center gap-2">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="btn-secondary disabled:opacity-50">{t('prev')}</button>
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{page} {t('of')} {pages}</span>
+            <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages} className="btn-secondary disabled:opacity-50">{t('next')}</button>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

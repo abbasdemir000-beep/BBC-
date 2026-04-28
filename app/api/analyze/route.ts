@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { smartClassify, smartEmbedding } from '@/lib/ai/smartEngine';
+import { classifyWithAI } from '@/lib/ai/openrouter';
 import { routeToExperts } from '@/lib/ai/router';
 import { z } from 'zod';
 
@@ -20,10 +21,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: String(err) }, { status: 422 });
   }
 
-  // Classify with smart rule-based engine (zero API calls)
-  const classification = smartClassify(text);
+  // Try OpenRouter AI first; fall back to rule-based engine
+  let classification: {
+    domain: string; subDomain: string; topic: string;
+    questionType: string; difficulty: string; confidence: number; reasoning: string;
+    safetyFlags?: string[]; isSafe?: boolean;
+  };
+  let modelUsed = 'smart-engine-v1';
 
-  // Generate deterministic embedding
+  if (process.env.OPENROUTER_API_KEY) {
+    try {
+      const aiResult = await classifyWithAI(text);
+      classification = { ...aiResult, safetyFlags: [], isSafe: true };
+      modelUsed = 'openrouter/meta-llama/llama-3.3-70b-instruct';
+    } catch {
+      classification = smartClassify(text);
+    }
+  } else {
+    classification = smartClassify(text);
+  }
+
+  const safetyFlags = classification.safetyFlags ?? [];
+  const isSafe = classification.isSafe ?? true;
+
+  // Generate embedding for routing
   const embedding = smartEmbedding(text);
 
   // Find domain by slug
@@ -41,10 +62,10 @@ export async function POST(req: NextRequest) {
       confidence: classification.confidence,
       reasoning: classification.reasoning,
       embeddingVector: JSON.stringify(embedding),
-      safetyFlags: JSON.stringify(classification.safetyFlags),
-      isSafe: classification.isSafe,
+      safetyFlags: JSON.stringify(safetyFlags),
+      isSafe,
       processingTimeMs: Date.now() - start,
-      modelUsed: 'smart-engine-v1',
+      modelUsed,
     },
     create: {
       consultationId,
@@ -56,10 +77,10 @@ export async function POST(req: NextRequest) {
       confidence: classification.confidence,
       reasoning: classification.reasoning,
       embeddingVector: JSON.stringify(embedding),
-      safetyFlags: JSON.stringify(classification.safetyFlags),
-      isSafe: classification.isSafe,
+      safetyFlags: JSON.stringify(safetyFlags),
+      isSafe,
       processingTimeMs: Date.now() - start,
-      modelUsed: 'smart-engine-v1',
+      modelUsed,
     },
   });
 
@@ -71,18 +92,17 @@ export async function POST(req: NextRequest) {
         domainId: domain.id,
         questionType: classification.questionType,
         difficulty: classification.difficulty,
-        status: classification.isSafe ? 'routing' : 'cancelled',
+        status: isSafe ? 'routing' : 'cancelled',
       },
     });
   }
 
   // Route to top matching experts via embedding similarity
   let routings: unknown[] = [];
-  if (classification.isSafe && domain) {
+  if (isSafe && domain) {
     try {
       routings = await routeToExperts(consultationId, domain.slug, embedding, 5);
 
-      // Notify each routed expert
       const consultation = await prisma.consultation.findUnique({ where: { id: consultationId } });
       if (consultation) {
         const routingRecords = routings as Array<{ expertId: string }>;
@@ -98,7 +118,7 @@ export async function POST(req: NextRequest) {
         });
       }
     } catch {
-      // non-fatal — routing failure doesn't block analysis
+      // non-fatal
     }
     await prisma.consultation.update({
       where: { id: consultationId },
@@ -106,9 +126,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({
-    analysis,
-    routings,
-    processingTimeMs: Date.now() - start,
-  });
+  return NextResponse.json({ analysis, routings, modelUsed, processingTimeMs: Date.now() - start });
 }

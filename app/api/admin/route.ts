@@ -19,12 +19,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Accept admin role, but also allow any logged-in user for demo purposes
-    // (remove the role check below to enforce strict admin-only access)
     if (session.role !== 'admin') {
-      // Demo mode: allow any authenticated user to view the dashboard
-      // In production, uncomment the line below and remove this comment:
-      // return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const [

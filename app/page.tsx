@@ -13,11 +13,12 @@ import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import SearchPage from '@/components/SearchPage';
 import Leaderboard from '@/components/Leaderboard';
 import AdminPanel from '@/components/AdminPanel';
+import ProfilePage from '@/components/ProfilePage';
 import { useLang } from '@/lib/i18n/LanguageContext';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useTheme } from '@/lib/theme/ThemeContext';
 
-type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard' | 'notifications' | 'my-questions' | 'search' | 'leaderboard' | 'admin';
+type Tab = 'dashboard' | 'experts' | 'consultations' | 'ask' | 'rewards' | 'expert-dashboard' | 'notifications' | 'my-questions' | 'search' | 'leaderboard' | 'admin' | 'profile';
 
 const NAV_ICONS: Record<string, React.ReactNode> = {
   dashboard: (
@@ -76,11 +77,16 @@ const NAV_ICONS: Record<string, React.ReactNode> = {
       <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
     </svg>
   ),
+  profile: (
+    <svg className="w-[18px] h-[18px]" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+    </svg>
+  ),
 };
 
 const NAV_GROUPS = [
   { label: 'Explore', items: ['dashboard', 'search', 'experts', 'consultations', 'leaderboard'] },
-  { label: 'My Space', items: ['ask', 'my-questions', 'rewards', 'notifications'] },
+  { label: 'My Space', items: ['ask', 'my-questions', 'rewards', 'notifications', 'profile'] },
   { label: 'Expert', items: ['expert-dashboard'] },
   { label: 'System', items: ['admin'] },
 ];
@@ -108,6 +114,7 @@ export default function Home() {
     { id: 'notifications', authOnly: true },
     { id: 'expert-dashboard', expertOnly: true },
     { id: 'admin', adminOnly: true },
+    { id: 'profile', authOnly: true },
   ];
 
   const NAV_LABELS: Record<string, string> = {
@@ -122,6 +129,7 @@ export default function Home() {
     notifications: 'Notifications',
     'expert-dashboard': 'Expert Hub',
     admin: 'Admin',
+    profile: t('nav_profile'),
   };
 
   const visible = NAV.filter(n =>
@@ -216,10 +224,11 @@ export default function Home() {
           {!loading && (
             user ? (
               <div className="space-y-1">
-                <div className="flex items-center gap-3 px-3 py-2 rounded-xl"
+                <button onClick={() => navigate('profile')}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl w-full text-start transition-colors"
                   style={{ background: 'var(--surface-2)' }}>
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                    style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                    style={{ background: 'linear-gradient(135deg,#c2714f,#a85535)' }}>
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -227,24 +236,24 @@ export default function Home() {
                     <div className="text-xs capitalize" style={{ color: 'var(--text-muted)' }}>{user.role}</div>
                   </div>
                   {unreadNotifications > 0 && (
-                    <button onClick={() => navigate('notifications')}
+                    <span
                       className="w-5 h-5 rounded-full text-white text-xs flex items-center justify-center font-bold flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg,#f43f5e,#ec4899)' }}>
                       {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                    </button>
+                    </span>
                   )}
-                </div>
+                </button>
                 <button onClick={logout}
                   className="w-full text-xs py-2 px-3 rounded-xl text-start transition-colors"
                   style={{ color: 'var(--text-muted)' }}
                   onMouseEnter={e => { e.currentTarget.style.color='#f87171'; e.currentTarget.style.background='rgba(248,113,113,0.08)'; }}
                   onMouseLeave={e => { e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.background=''; }}>
-                  Sign out
+                  {t('sign_out')}
                 </button>
               </div>
             ) : (
               <button onClick={() => setShowAuth(true)} className="btn-primary w-full py-2.5">
-                Sign In / Register
+                {t('sign_in_register')}
               </button>
             )
           )}
@@ -264,6 +273,7 @@ export default function Home() {
         {tab === 'search'           && <SearchPage />}
         {tab === 'leaderboard'      && <Leaderboard />}
         {tab === 'admin'            && <AdminPanel />}
+        {tab === 'profile'          && <ProfilePage />}
       </main>
     </div>
   );
@@ -272,34 +282,37 @@ export default function Home() {
 /* ── Sub-components ─────────────────────────────────────────────────── */
 
 function LogoMark() {
+  const { t } = useLang();
   return (
     <div className="flex items-center gap-2.5">
       <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-sm"
-        style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>K</div>
-      <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>KnowledgeMarket</span>
+        style={{ background: 'linear-gradient(135deg,#c2714f,#a85535)' }}>K</div>
+      <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{t('logo_name')}</span>
     </div>
   );
 }
 
 function LogoFull() {
+  const { t } = useLang();
   return (
     <div className="flex items-center gap-3">
       <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-base flex-shrink-0 animate-glow"
-        style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', boxShadow: '0 0 20px rgba(99,102,241,0.4)' }}>K</div>
+        style={{ background: 'linear-gradient(135deg,#c2714f,#a85535)', boxShadow: '0 0 20px rgba(194,113,79,0.4)' }}>K</div>
       <div>
-        <div className="font-bold text-sm leading-tight gradient-text">KnowledgeMarket</div>
-        <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>AI Expert Platform</div>
+        <div className="font-bold text-sm leading-tight gradient-text">{t('logo_name')}</div>
+        <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('logo_sub')}</div>
       </div>
     </div>
   );
 }
 
 function ThemeToggle({ theme, toggle }: { theme: string; toggle: () => void }) {
+  const { t } = useLang();
   return (
     <button onClick={toggle}
       className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200"
       style={{ background: 'var(--surface-2)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-      title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+      title={theme === 'dark' ? t('theme_light') : t('theme_dark')}>
       {theme === 'dark' ? (
         <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd"/>
@@ -321,10 +334,10 @@ function NavItem({ id, label, icon, active, badge, onClick }: {
     <button onClick={onClick}
       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-start"
       style={active ? {
-        background: 'rgba(99,102,241,0.12)',
+        background: 'rgba(194,113,79,0.12)',
         color: 'var(--accent)',
-        border: '1px solid rgba(99,102,241,0.2)',
-        boxShadow: '0 0 16px rgba(99,102,241,0.08)',
+        border: '1px solid rgba(194,113,79,0.2)',
+        boxShadow: '0 0 16px rgba(194,113,79,0.08)',
       } : {
         color: 'var(--text-secondary)',
         border: '1px solid transparent',
